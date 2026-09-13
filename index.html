@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Crucial for mobile: prevents zooming and scales correctly -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nizzlers Game Night</title>
+    <style>
+        /* Mobile-First, Lightweight CSS */
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --accent-color: #bb86fc;
+            --text-color: #ffffff;
+            --text-secondary: #aaaaaa;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Prevents scroll lag */
+        }
+
+        /* Screen Management & GPU-Accelerated Animations */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--accent-color);
+        }
+
+        p {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        /* Form & Inputs */
+        input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--surface-color);
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Buttons with tactile feedback */
+        button {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            background-color: var(--accent-color);
+            color: #000;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            margin-bottom: 15px;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Leaderboard Styles */
+        .leaderboard-list {
+            width: 100%;
+            max-width: 350px;
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .player-row:last-child {
+            border-bottom: none;
+        }
+
+        .exp-badge {
+            background-color: var(--accent-color);
+            color: #000;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid var(--surface-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen active">
+        <div class="loader"></div>
+        <p style="margin-top: 20px;">Connecting to Nizzlers...</p>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen">
+        <h1>Nizzlers Game Night</h1>
+        <p>Who knows me better?</p>
+        <!-- Pre-filled with your friend group as examples -->
+        <input type="text" id="username" placeholder="e.g., Lilo, Joe, Rosa, Lana..." autocomplete="off">
+        <button id="join-btn">Join Game</button>
+    </div>
+
+    <!-- Game/Waiting Screen -->
+    <div id="game-screen" class="screen">
+        <h1>Round <span id="round-number">1</span></h1>
+        <p id="question-text">Waiting for host to start...</p>
+        
+        <div id="answer-buttons" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <button class="answer-btn" onclick="submitAnswer('A')">Option A</button>
+            <button class="answer-btn" onclick="submitAnswer('B')">Option B</button>
+        </div>
+        
+        <button id="view-leaderboard-btn" style="margin-top: 30px; background-color: var(--surface-color); color: var(--text-color);">View Leaderboard</button>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard-screen" class="screen">
+        <h1>Leaderboard</h1>
+        <p>Who's taking the lead?</p>
+        <div class="leaderboard-list" id="leaderboard-container">
+            <!-- Populated by JS -->
+        </div>
+        <button id="back-to-game-btn" style="margin-top: 20px;">Back to Game</button>
+    </div>
+
+    <!-- Firebase SDK (Modular V9+) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getDatabase, ref, set, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+        // Exact configuration extracted from image_59b564.png
+        const firebaseConfig = {
+            apiKey: "AIzaSyCoxu99FykhoDnyZiVkPaSS2cC03KmG9b0",
+            authDomain: "nizzlers-92be3.firebaseapp.com",
+            projectId: "nizzlers-92be3",
+            storageBucket: "nizzlers-92be3.firebasestorage.app",
+            messagingSenderId: "594175328017",
+            appId: "1:594175328017:web:b9b92535f3d752961756b0",
+            measurementId: "G-GH82TV53VG"
+        };
+
+        // Initialize Firebase & Database
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Global Variables
+        let myPlayerId = localStorage.getItem('nizzler_player_id');
+        let myUsername = localStorage.getItem('nizzler_username');
+
+        // UI Management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Small timeout allows the display:flex to apply before opacity fades in (smooth animation)
+            setTimeout(() => {
+                document.getElementById(screenId).classList.add('active');
+            }, 10);
+        }
+
+        // --- Initialization & Reconnection Logic ---
+        async function initGame() {
+            if (myPlayerId) {
+                // Check if player still exists in database to prevent ghost reconnects
+                const playerRef = ref(db, 'players/' + myPlayerId);
+                const snapshot = await get(playerRef);
+                
+                if (snapshot.exists()) {
+                    console.log("Reconnected as:", myUsername);
+                    listenToGameState();
+                    showScreen('game-screen');
+                } else {
+                    // DB was reset, clear local storage and start fresh
+                    localStorage.removeItem('nizzler_player_id');
+                    localStorage.removeItem('nizzler_username');
+                    myPlayerId = null;
+                    showScreen('login-screen');
+                }
+            } else {
+                showScreen('login-screen');
+            }
+        }
+
+        // --- Join Game Logic ---
+        document.getElementById('join-btn').addEventListener('click', async () => {
+            const nameInput = document.getElementById('username').value.trim();
+            if (!nameInput) return alert("Please enter your name!");
+
+            // Generate unique device ID
+            myPlayerId = 'player_' + Math.random().toString(36).substr(2, 9);
+            myUsername = nameInput;
+
+            // Save locally so connection loss doesn't reset progress
+            localStorage.setItem('nizzler_player_id', myPlayerId);
+            localStorage.setItem('nizzler_username', myUsername);
+
+            // Save to Firebase
+            await set(ref(db, 'players/' + myPlayerId), {
+                name: myUsername,
+                exp: 0,
+                lastAnswer: ""
+            });
+
+            listenToGameState();
+            showScreen('game-screen');
+        });
+
+        // --- Listen to Game State (Real-time updates) ---
+        function listenToGameState() {
+            const gameRef = ref(db, 'gameState');
+            onValue(gameRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('question-text').innerText = data.currentQuestion || "Waiting for host...";
+                    document.getElementById('round-number').innerText = data.round || 1;
+                    
+                    // You can expand this to dynamically create buttons based on Firebase data
+                }
+            });
+            
+            // Also listen to players for leaderboard updates
+            listenToLeaderboard();
+        }
+
+        // --- Handle Answering ---
+        window.submitAnswer = async function(answer) {
+            if (!myPlayerId) return;
+            
+            // Give immediate visual feedback
+            const btns = document.querySelectorAll('.answer-btn');
+            btns.forEach(btn => btn.style.opacity = '0.5');
+
+            // Send answer to DB (In a full game, the host script would validate and add EXP)
+            await update(ref(db, 'players/' + myPlayerId), {
+                lastAnswer: answer
+            });
+            
+            alert(`Answer ${answer} locked in! Waiting for round to end...`);
+        }
+
+        // --- Leaderboard Logic ---
+        function listenToLeaderboard() {
+            const playersRef = ref(db, 'players');
+            onValue(playersRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                // Convert to array and sort by EXP descending
+                const playersArray = Object.values(data).sort((a, b) => b.exp - a.exp);
+                
+                const container = document.getElementById('leaderboard-container');
+                container.innerHTML = ''; // Clear current
+
+                playersArray.forEach((player, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'player-row';
+                    
+                    // Highlight the top player
+                    const prefix = index === 0 ? '👑 ' : '';
+                    
+                    row.innerHTML = `
+                        <span>${prefix}${player.name}</span>
+                        <span class="exp-badge">${player.exp} EXP</span>
+                    `;
+                    container.appendChild(row);
+                });
+            });
+        }
+
+        // Navigation Buttons
+        document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+            showScreen('leaderboard-screen');
+        });
+
+        document.getElementById('back-to-game-btn').addEventListener('click', () => {
+            showScreen('game-screen');
+        });
+
+        // Start the app sequence
+        initGame();
+
+    </script>
+</body>
+</html>
