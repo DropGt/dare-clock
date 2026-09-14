@@ -66,17 +66,21 @@
 </div>
 
 <script>
+    // Properly extract createClient from the global Supabase script
+    const { createClient } = supabase;
+
     // Initialize Supabase with your exact keys
     const SUPABASE_URL = 'https://egzkmrddetiggrcvrjoq.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnemttcmRkZXRpZ2dyY3Zyam9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzMxNDcsImV4cCI6MjEwNDkwOTE0N30.pUtxuahj42tUlOMGGSKFZ7T0UERauzdgNQOOfgBx1Ws';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnemttcmRkZXRpZ2dyY3Zyam9xIkwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzMxNDcsImV4cCI6MjEwNDkwOTE0N30.pUtxuahj42tUlOMGGSKFZ7T0UERauzdgNQOOfgBx1Ws';
+    
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
 
     // --- Authentication Logic ---
 
     // Automatically check if the device is already logged in
-    supabase.auth.onAuthStateChange((event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
         if (session) {
             currentUser = session.user;
             document.getElementById('auth-screen').style.display = 'none';
@@ -93,7 +97,7 @@
     async function signUp() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await client.auth.signUp({ email, password });
         if (error) document.getElementById('auth-error').innerText = error.message;
         else alert('Success! You can now sign in (check your email to verify if required).');
     }
@@ -101,17 +105,17 @@
     async function signIn() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await client.auth.signInWithPassword({ email, password });
         if (error) document.getElementById('auth-error').innerText = error.message;
     }
 
     async function signInWithGoogle() {
-        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+        const { error } = await client.auth.signInWithOAuth({ provider: 'google' });
         if (error) document.getElementById('auth-error').innerText = error.message;
     }
 
     async function signOut() {
-        await supabase.auth.signOut();
+        await client.auth.signOut();
     }
 
     // --- Chat & Realtime Logic ---
@@ -119,7 +123,7 @@
     const messagesContainer = document.getElementById('messages-container');
 
     async function loadMessages() {
-        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+        const { data, error } = await client.from('messages').select('*').order('created_at', { ascending: true });
         if (data) {
             messagesContainer.innerHTML = '';
             data.forEach(displayMessage);
@@ -129,7 +133,7 @@
 
     // Listen for new messages sent by other devices
     function subscribeToRealtime() {
-        supabase.channel('public:messages')
+        client.channel('public:messages')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                 displayMessage(payload.new);
                 scrollToBottom();
@@ -140,10 +144,10 @@
     async function sendMessage() {
         const input = document.getElementById('message-input');
         const text = input.value.trim();
-        if (!text) return;
+        if (!text || !currentUser) return;
         input.value = '';
 
-        await supabase.from('messages').insert([
+        await client.from('messages').insert([
             { user_email: currentUser.email, text_content: text }
         ]);
     }
@@ -153,13 +157,13 @@
     async function sendImage() {
         const fileInput = document.getElementById('image-upload');
         const file = fileInput.files[0];
-        if (!file) return;
+        if (!file || !currentUser) return;
 
         // Generate a unique file name
         const filePath = `${Date.now()}_${file.name}`;
 
         // Upload to Supabase Storage
-        const { error: uploadError } = await supabase.storage.from('chat_images').upload(filePath, file);
+        const { error: uploadError } = await client.storage.from('chat_images').upload(filePath, file);
         
         if (uploadError) {
             alert('Error uploading image: ' + uploadError.message);
@@ -167,10 +171,10 @@
         }
 
         // Get the public URL of the uploaded image
-        const { data: urlData } = supabase.storage.from('chat_images').getPublicUrl(filePath);
+        const { data: urlData } = client.storage.from('chat_images').getPublicUrl(filePath);
         
         // Save the image URL as a message in the database
-        await supabase.from('messages').insert([
+        await client.from('messages').insert([
             { user_email: currentUser.email, image_url: urlData.publicUrl }
         ]);
 
