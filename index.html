@@ -5,33 +5,237 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Group Chat</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; height: 100vh; }
-        .container { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* Auth Screen */
-        #auth-screen { padding: 40px 20px; text-align: center; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
-        button { width: 95%; padding: 10px; margin: 5px 0; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .google-btn { background: #db4437; }
-        .google-btn:hover { background: #c23321; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            color: #0f172a;
+        }
 
-        /* Chat Screen */
+        .container { 
+            width: 100%; 
+            max-width: 460px; 
+            height: 90vh; 
+            max-height: 780px; 
+            background: #ffffff; 
+            border-radius: 24px; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); 
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Auth Screen --- */
+        #auth-screen { 
+            padding: 40px 28px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            height: 100%; 
+            background: #ffffff;
+        }
+        
+        .auth-header { text-align: center; margin-bottom: 28px; }
+        .auth-header h2 { font-size: 1.75rem; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+        .auth-header p { color: #64748b; font-size: 0.9rem; margin-top: 6px; }
+
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        input[type="email"], input[type="password"] { 
+            width: 100%; 
+            padding: 12px 16px; 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 12px; 
+            font-size: 0.95rem; 
+            font-family: inherit;
+            transition: all 0.2s ease;
+            outline: none;
+            background: #f8fafc;
+        }
+        
+        input[type="email"]:focus, input[type="password"]:focus { 
+            border-color: #6366f1; 
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12); 
+        }
+
+        .btn { 
+            width: 100%; 
+            padding: 13px; 
+            border-radius: 12px; 
+            font-size: 0.95rem; 
+            font-weight: 600; 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary { background: #6366f1; color: white; margin-top: 8px; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-secondary { background: #f1f5f9; color: #334155; margin-top: 8px; }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        .divider { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 0.8rem; margin: 20px 0; font-weight: 500; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
+        .divider span { padding: 0 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .btn-google { background: #ffffff; color: #1e293b; border: 1.5px solid #e2e8f0; }
+        .btn-google:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+
+        /* --- Chat Screen --- */
         #chat-screen { display: none; flex-direction: column; height: 100%; }
-        .chat-header { background: #007bff; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .chat-header button { width: auto; margin: 0; padding: 5px 10px; background: #dc3545; }
-        #messages-container { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+
+        .chat-header { 
+            padding: 18px 20px; 
+            background: #ffffff; 
+            border-bottom: 1px solid #f1f5f9; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            z-index: 10;
+        }
+
+        .chat-title { display: flex; align-items: center; gap: 10px; }
+        .chat-title-avatar { width: 38px; height: 38px; border-radius: 10px; background: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; }
+        .chat-title text { font-weight: 700; font-size: 1rem; color: #0f172a; }
+
+        .btn-logout { 
+            background: #fee2e2; 
+            color: #ef4444; 
+            padding: 8px 14px; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #fca5a5; }
+
+        #messages-container { 
+            flex: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            background: #f8fafc; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+        }
+
+        #messages-container::-webkit-scrollbar { width: 6px; }
+        #messages-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .message { 
+            background: #ffffff; 
+            padding: 12px 16px; 
+            border-radius: 16px; 
+            max-width: 82%; 
+            word-wrap: break-word; 
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            border: 1px solid #f1f5f9;
+            align-self: flex-start;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message small { 
+            display: block; 
+            color: #6366f1; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            margin-bottom: 4px; 
+        }
         
-        .message { background: white; padding: 10px; border-radius: 8px; max-width: 80%; word-wrap: break-word; }
-        .message small { display: block; color: #888; font-size: 0.8em; margin-bottom: 5px; }
-        .message img { max-width: 100%; border-radius: 5px; margin-top: 5px; }
-        
-        .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ccc; }
-        .chat-input-area input[type="text"] { flex: 1; margin: 0; border-radius: 20px; padding: 10px 15px; }
+        .message-body { font-size: 0.92rem; color: #334155; line-height: 1.4; }
+
+        .message img { 
+            max-width: 100%; 
+            border-radius: 12px; 
+            margin-top: 8px; 
+            display: block;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* --- Chat Input Area --- */
+        .chat-input-area { 
+            padding: 14px 16px; 
+            background: #ffffff; 
+            border-top: 1px solid #f1f5f9; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+
+        .chat-input-area input[type="text"] { 
+            flex: 1; 
+            padding: 12px 18px; 
+            border: 1.5px solid #e2e8f0; 
+            border-radius: 24px; 
+            font-size: 0.95rem; 
+            outline: none;
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        .chat-input-area input[type="text"]:focus { 
+            border-color: #6366f1; 
+            background: #ffffff; 
+        }
+
         .chat-input-area input[type="file"] { display: none; }
-        .file-label { display: flex; align-items: center; justify-content: center; background: #28a745; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin: 0 10px; }
-        .chat-input-area button { width: 60px; margin: 0; border-radius: 20px; }
+
+        .file-label { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background: #f1f5f9; 
+            color: #64748b; 
+            border-radius: 50%; 
+            width: 42px; 
+            height: 42px; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .file-label:hover { background: #e2e8f0; color: #334155; }
+
+        .btn-send { 
+            background: #6366f1; 
+            color: white; 
+            width: 42px; 
+            height: 42px; 
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-send:hover { background: #4f46e5; transform: scale(1.05); }
+
+        #auth-error { color: #ef4444; font-size: 0.85rem; margin-top: 12px; text-align: center; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -39,67 +243,118 @@
 <div class="container">
     <!-- Login / Sign Up Screen -->
     <div id="auth-screen">
-        <h2>Welcome to the Chat</h2>
-        <input type="email" id="email" placeholder="Email Address">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="signUp()">Sign Up</button>
-        <button onclick="signIn()">Sign In</button>
-        <hr style="margin: 20px 0;">
-        <button class="google-btn" onclick="signInWithGoogle()">Sign in with Google</button>
-        <p id="auth-error" style="color: red; font-size: 0.9em;"></p>
+        <div class="auth-header">
+            <h2>Welcome</h2>
+            <p>Sign in or create an account to start chatting</p>
+        </div>
+
+        <div class="input-group">
+            <label>Email Address</label>
+            <input type="email" id="email" placeholder="name@example.com">
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+
+        <button class="btn btn-primary" onclick="signIn()">Sign In</button>
+        <button class="btn btn-secondary" onclick="signUp()">Create Account</button>
+
+        <div class="divider"><span>Or continue with</span></div>
+
+        <button class="btn btn-google" onclick="signInWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            Sign in with Google
+        </button>
+
+        <p id="auth-error"></p>
     </div>
 
     <!-- Chat Interface -->
     <div id="chat-screen">
         <div class="chat-header">
-            <span>Group Chat</span>
-            <button onclick="signOut()">Log Out</button>
+            <div class="chat-title">
+                <div class="chat-title-avatar">#</div>
+                <text>Global Chat</text>
+            </div>
+            <button class="btn-logout" onclick="signOut()">Log Out</button>
         </div>
+
         <div id="messages-container"></div>
+
         <div class="chat-input-area">
-            <label class="file-label" for="image-upload">📷</label>
+            <label class="file-label" for="image-upload" title="Attach image">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+            </label>
             <input type="file" id="image-upload" accept="image/*" onchange="sendImage()">
             <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button onclick="sendMessage()">Send</button>
+            <button class="btn-send" onclick="sendMessage()" title="Send">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                </svg>
+            </button>
         </div>
     </div>
 </div>
 
 <script>
-    // Properly extract createClient from the global Supabase script
     const { createClient } = supabase;
 
-    // Initialize Supabase with your exact keys
+    // Corrected Supabase parameters without key corruption
     const SUPABASE_URL = 'https://egzkmrddetiggrcvrjoq.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnemttcmRkZXRpZ2dyY3Zyam9xIkwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzMxNDcsImV4cCI6MjEwNDkwOTE0N30.pUtxuahj42tUlOMGGSKFZ7T0UERauzdgNQOOfgBx1Ws';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnemttcmRkZXRpZ2dyY3Zyam9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzMxNDcsImV4cCI6MjEwNDkwOTE0N30.pUtxuahj42tUlOMGGSKFZ7T0UERauzdgNQOOfgBx1Ws';
     
     const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
 
-    // --- Authentication Logic ---
+    // --- State Management ---
 
-    // Automatically check if the device is already logged in
-    client.auth.onAuthStateChange((event, session) => {
+    function handleSession(session) {
         if (session) {
             currentUser = session.user;
             document.getElementById('auth-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
             loadMessages();
             subscribeToRealtime();
+
+            if (window.location.hash) {
+                window.history.replaceState(null, null, window.location.pathname);
+            }
         } else {
             currentUser = null;
-            document.getElementById('auth-screen').style.display = 'block';
+            document.getElementById('auth-screen').style.display = 'flex';
             document.getElementById('chat-screen').style.display = 'none';
         }
+    }
+
+    client.auth.onAuthStateChange((event, session) => {
+        handleSession(session);
     });
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await client.auth.getSession();
+        if (session) {
+            handleSession(session);
+        }
+    });
+
+    // --- Authentication ---
 
     async function signUp() {
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const { error } = await client.auth.signUp({ email, password });
         if (error) document.getElementById('auth-error').innerText = error.message;
-        else alert('Success! You can now sign in (check your email to verify if required).');
+        else alert('Account created! You can now log in.');
     }
 
     async function signIn() {
@@ -110,7 +365,12 @@
     }
 
     async function signInWithGoogle() {
-        const { error } = await client.auth.signInWithOAuth({ provider: 'google' });
+        const { error } = await client.auth.signInWithOAuth({ 
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
         if (error) document.getElementById('auth-error').innerText = error.message;
     }
 
@@ -118,12 +378,12 @@
         await client.auth.signOut();
     }
 
-    // --- Chat & Realtime Logic ---
+    // --- Chat & Realtime ---
 
     const messagesContainer = document.getElementById('messages-container');
 
     async function loadMessages() {
-        const { data, error } = await client.from('messages').select('*').order('created_at', { ascending: true });
+        const { data } = await client.from('messages').select('*').order('created_at', { ascending: true });
         if (data) {
             messagesContainer.innerHTML = '';
             data.forEach(displayMessage);
@@ -131,7 +391,6 @@
         }
     }
 
-    // Listen for new messages sent by other devices
     function subscribeToRealtime() {
         client.channel('public:messages')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -152,33 +411,27 @@
         ]);
     }
 
-    // --- Image Upload Logic ---
-
     async function sendImage() {
         const fileInput = document.getElementById('image-upload');
         const file = fileInput.files[0];
         if (!file || !currentUser) return;
 
-        // Generate a unique file name
         const filePath = `${Date.now()}_${file.name}`;
 
-        // Upload to Supabase Storage
         const { error: uploadError } = await client.storage.from('chat_images').upload(filePath, file);
         
         if (uploadError) {
-            alert('Error uploading image: ' + uploadError.message);
+            alert('Upload error: ' + uploadError.message);
             return;
         }
 
-        // Get the public URL of the uploaded image
         const { data: urlData } = client.storage.from('chat_images').getPublicUrl(filePath);
         
-        // Save the image URL as a message in the database
         await client.from('messages').insert([
             { user_email: currentUser.email, image_url: urlData.publicUrl }
         ]);
 
-        fileInput.value = ''; // Reset input
+        fileInput.value = '';
     }
 
     // --- UI Helpers ---
@@ -188,8 +441,8 @@
         msgDiv.className = 'message';
         
         let contentHtml = `<small>${msg.user_email}</small>`;
-        if (msg.text_content) contentHtml += `<div>${msg.text_content}</div>`;
-        if (msg.image_url) contentHtml += `<img src="${msg.image_url}" alt="Chat Image">`;
+        if (msg.text_content) contentHtml += `<div class="message-body">${msg.text_content}</div>`;
+        if (msg.image_url) contentHtml += `<img src="${msg.image_url}" alt="Attachment">`;
         
         msgDiv.innerHTML = contentHtml;
         messagesContainer.appendChild(msgDiv);
