@@ -32,7 +32,7 @@
             padding: 0;
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
-            scrollbar-width: none; /* Hide scrollbars for ultra-clean mobile UI */
+            scrollbar-width: none;
         }
         *::-webkit-scrollbar { display: none; }
 
@@ -178,6 +178,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            width: 100%;
         }
 
         .btn-glass:hover {
@@ -534,6 +535,30 @@
             display: none;
             animation: fadeInUp 0.3s ease;
         }
+
+        /* Profile Setup Modal Overlay */
+        #profile-setup-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-content {
+            background: rgba(20, 20, 35, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border-bright);
+            padding: 28px;
+            border-radius: 28px;
+            width: 100%;
+            max-width: 400px;
+            color: #fff;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -541,26 +566,33 @@
 <div class="app-container">
     
     <!-- ==========================================================
-       1. AUTH SCREEN (Email & Password Login/Signup)
+       1. AUTH SCREEN (Email & Password + Google Login Box)
        ========================================================== -->
-    <div id="auth-screen" class="screen active" style="justify-content: center; padding: 30px;">
-        <div class="glass-panel" style="padding: 40px 25px; text-align: center;">
-            <h1 style="font-size: 3rem; margin-bottom: 8px; font-weight: 800; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Dare</h1>
-            <p style="margin-bottom: 35px; color: var(--text-muted); font-size: 1.05rem;">Dynamic social connectivity.</p>
+    <div id="auth-screen" class="screen active" style="justify-content: center; padding: 25px;">
+        <div class="glass-panel" style="padding: 35px 25px; text-align: center;">
+            <h1 style="font-size: 2.8rem; margin-bottom: 6px; font-weight: 800; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Dare</h1>
+            <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 1rem;">Dynamic social connectivity.</p>
             
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+            <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px;">
                 <input type="email" id="auth-email" class="input-box" placeholder="Email address">
                 <input type="password" id="auth-pass" class="input-box" placeholder="Password (min 6 chars)">
             </div>
 
-            <div style="display: flex; gap: 12px;">
-                <button class="btn-glass" style="flex: 1;" onclick="handleAuth('signup')">Sign Up</button>
-                <button class="btn-glass" style="flex: 1; background: rgba(255,255,255,0.3);" onclick="handleAuth('signin')">Log In</button>
-                <button class="btn-glass" style="margin-top: 12px; background: rgba(255,255,255,0.25);" onclick="handleGoogleLogin()">
-    <svg style="width:18px; height:18px; margin-right:8px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.6 9.5c0-.6-.1-1.3-.2-1.9H12v3.8h3.7c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.6-3.7 2.6-6.5zM12 23c3.2 0 6-1.1 8-3l-2.7-2.1c-1.1.7-2.5 1.2-5.3 1.2-3.1 0-5.8-2.1-6.7-5H1.4l-3.7 2.9C3.5 20.4 7.4 23 12 23z"/></svg>
-    Sign in with Google
-</button>
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <button class="btn-glass" onclick="handleAuth('signup')">Sign Up</button>
+                <button class="btn-glass" style="background: rgba(255,255,255,0.3);" onclick="handleAuth('signin')">Log In</button>
             </div>
+
+            <!-- Secondary Bubble / Container for External Providers -->
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15);">
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Or connect instantly</p>
+                <!-- Google Button positioned below main actions inside second bigger bubble -->
+                <button class="btn-glass" style="background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="handleGoogleLogin()">
+                    <svg style="width:18px; height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.6 9.5c0-.6-.1-1.3-.2-1.9H12v3.8h3.7c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.6-3.7 2.6-6.5zM12 23c3.2 0 6-1.1 8-3l-2.7-2.1c-1.1.7-2.5 1.2-5.3 1.2-3.1 0-5.8-2.1-6.7-5H1.4l-3.7 2.9C3.5 20.4 7.4 23 12 23z"/></svg>
+                    Sign in with Google
+                </button>
+            </div>
+
             <div id="auth-error" class="error-msg"></div>
         </div>
     </div>
@@ -594,7 +626,7 @@
         <div class="glass-header"><h2>Find Friends</h2></div>
         <div style="padding: 0 20px 12px; display:flex; gap:10px;">
             <input type="text" id="friend-search" class="input-box" placeholder="Search username..." onkeypress="if(event.key==='Enter') searchUsers()">
-            <button class="btn-glass" onclick="searchUsers()">🔍</button>
+            <button class="btn-glass" style="width: auto;" onclick="searchUsers()">🔍</button>
         </div>
         <div class="scroll-area" id="friends-list"></div>
     </div>
@@ -652,7 +684,7 @@
                     <button id="btn-edit-last_name" class="edit-btn" onclick="toggleEdit('last_name')" title="Edit Last Name">✏️</button>
                 </div>
                 
-                <button class="btn-glass" style="background: rgba(255, 50, 50, 0.25); border-color: rgba(255,100,100,0.4); margin-top: 10px; width:100%;" onclick="logout()">Log Out</button>
+                <button class="btn-glass" style="background: rgba(255, 50, 50, 0.25); border-color: rgba(255,100,100,0.4); margin-top: 10px;" onclick="logout()">Log Out</button>
             </div>
         </div>
     </div>
@@ -669,7 +701,7 @@
         <div class="chat-messages" id="messages-container"></div>
         <div style="padding: 15px 20px 25px; display:flex; gap:10px;">
             <input type="text" id="msg-input" class="input-box" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendDM()">
-            <button class="btn-glass" onclick="sendDM()">Send</button>
+            <button class="btn-glass" style="width: auto;" onclick="sendDM()">Send</button>
         </div>
     </div>
 
@@ -687,7 +719,35 @@
 </div>
 
 <!-- ==========================================================
-   9. APPLICATION LOGIC & SUPABASE INTEGRATION
+   9. PROFILE SETUP MODAL (For new users & OAuth flows lacking data)
+   ========================================================== -->
+<div id="profile-setup-modal">
+    <div class="modal-content">
+        <h3 style="margin-top: 0; margin-bottom: 8px; font-weight: 700;">Complete Your Profile</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">Please verify your names and choose a unique username.</p>
+        
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">First Name</label>
+            <input type="text" id="setup-firstname" class="input-box" placeholder="First Name">
+        </div>
+        
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">Last Name</label>
+            <input type="text" id="setup-lastname" class="input-box" placeholder="Last Name">
+        </div>
+
+        <div style="margin-bottom: 6px;">
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">Username</label>
+            <input type="text" id="setup-username" class="input-box" placeholder="Username" oninput="checkUsernameAvailability(this.value)">
+        </div>
+        <div id="username-feedback" style="font-size: 0.8rem; margin-bottom: 20px; min-height: 18px;"></div>
+
+        <button onclick="saveProfileDetails()" class="btn-glass">Save & Continue</button>
+    </div>
+</div>
+
+<!-- ==========================================================
+   10. COMPLETE APPLICATION LOGIC & SUPABASE INTEGRATION
    ========================================================== -->
 <script>
     // --- SUPABASE CONFIGURATION ---
@@ -701,19 +761,25 @@
     let messageSubscription = null;
     let userProfile = {};
 
-    // --- AUTHENTICATION STATE OBSERVER ---
-    client.auth.onAuthStateChange(async (event, session) => {
+    // --- INITIALIZATION & OAUTH TOKEN CLEANUP ---
+    window.addEventListener('DOMContentLoaded', async () => {
+        // Clean up ugly Supabase OAuth hash fragments (#access_token=...) from the URL bar cleanly
+        if (window.location.hash.includes('access_token')) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
+        const { data: { session } } = await client.auth.getSession();
         if (session) {
             currentUser = session.user;
-            document.getElementById('auth-screen').classList.remove('active');
-            document.getElementById('bottom-nav').style.display = 'flex';
-            await loadProfileData();
-            switchTab('camera'); 
-        } else {
-            currentUser = null;
-            document.getElementById('auth-screen').classList.add('active');
-            document.getElementById('bottom-nav').style.display = 'none';
-            stopCamera();
+            await verifyUserProfileAndRedirect(currentUser);
+        }
+    });
+
+    // --- AUTHENTICATION STATE OBSERVER ---
+    client.auth.onAuthStateChange(async (event, session) => {
+        if (session && !currentUser) {
+            currentUser = session.user;
+            await verifyUserProfileAndRedirect(currentUser);
         }
     });
 
@@ -735,16 +801,32 @@
                 errDiv.innerText = error.message;
                 errDiv.style.display = "block";
             } else if (data.user) {
-                // Initialize profile row securely
-                await client.from('profiles').upsert([{ id: data.user.id, username: email.split('@')[0] }]);
-                alert("Account created successfully!");
+                currentUser = data.user;
+                await verifyUserProfileAndRedirect(currentUser);
             }
         } else {
-            const { error } = await client.auth.signInWithPassword({ email, password });
+            const { data, error } = await client.auth.signInWithPassword({ email, password });
             if (error) {
                 errDiv.innerText = error.message;
                 errDiv.style.display = "block";
+            } else if (data.user) {
+                currentUser = data.user;
+                await verifyUserProfileAndRedirect(currentUser);
             }
+        }
+    }
+
+    async function handleGoogleLogin() {
+        const { error } = await client.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+        if (error) {
+            const errDiv = document.getElementById('auth-error');
+            errDiv.innerText = error.message;
+            errDiv.style.display = "block";
         }
     }
 
@@ -753,10 +835,105 @@
         window.location.reload();
     }
 
+    // --- PROFILE VERIFICATION & SETUP MODAL WORKFLOW ---
+    async function verifyUserProfileAndRedirect(user) {
+        const { data, error } = await client.from('profiles').select('*').eq('id', user.id).single();
+
+        if (!data || !data.username || !data.first_name) {
+            // Extract pre-filled details from Google or provider metadata if available
+            const meta = user.user_metadata || {};
+            if (meta.given_name) document.getElementById('setup-firstname').value = meta.given_name;
+            if (meta.family_name) document.getElementById('setup-lastname').value = meta.family_name;
+            
+            let baseName = (meta.name || user.email.split('@')[0]).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+            generateUsernameSuggestions(baseName);
+
+            // Display setup modal
+            document.getElementById('profile-setup-modal').style.display = 'flex';
+        } else {
+            userProfile = data;
+            enterMainApp();
+        }
+    }
+
+    async function checkUsernameAvailability(username) {
+        username = username.trim().toLowerCase();
+        const feedback = document.getElementById('username-feedback');
+        
+        if (username.length < 3) {
+            feedback.style.color = '#ff8b8b';
+            feedback.innerText = "Username must be at least 3 characters long.";
+            return false;
+        }
+
+        const { data } = await client.from('profiles').select('username').eq('username', username);
+
+        if (data && data.length > 0) {
+            feedback.style.color = '#ff8b8b';
+            let suggestion1 = username + Math.floor(Math.random() * 900 + 100);
+            let suggestion2 = username + '_official';
+            feedback.innerHTML = `Taken! Try: <a href="#" onclick="applySuggestion('${suggestion1}')" style="color:#00f2fe; text-decoration:underline;">${suggestion1}</a> or <a href="#" onclick="applySuggestion('${suggestion2}')" style="color:#00f2fe; text-decoration:underline;">${suggestion2}</a>`;
+            return false;
+        } else {
+            feedback.style.color = '#4ade80';
+            feedback.innerText = "Username is available!";
+            return true;
+        }
+    }
+
+    function applySuggestion(suggestion) {
+        document.getElementById('setup-username').value = suggestion;
+        checkUsernameAvailability(suggestion);
+    }
+
+    async function generateUsernameSuggestions(base) {
+        const input = document.getElementById('setup-username');
+        const rand = Math.floor(Math.random() * 8999 + 1000);
+        input.value = base + rand;
+        checkUsernameAvailability(input.value);
+    }
+
+    async function saveProfileDetails() {
+        const firstName = document.getElementById('setup-firstname').value.trim();
+        const lastName = document.getElementById('setup-lastname').value.trim();
+        const username = document.getElementById('setup-username').value.trim().toLowerCase();
+        const feedback = document.getElementById('username-feedback');
+
+        if (!firstName || !lastName || !username) {
+            alert("Please fill out all fields.");
+            return;
+        }
+
+        const { error } = await client.from('profiles').upsert({
+            id: currentUser.id,
+            first_name: firstName,
+            last_name: lastName,
+            username: username,
+            updated_at: new Date()
+        });
+
+        if (error) {
+            feedback.style.color = '#ff8b8b';
+            feedback.innerText = error.message;
+            return;
+        }
+
+        document.getElementById('profile-setup-modal').style.display = 'none';
+        await loadProfileData();
+        enterMainApp();
+    }
+
+    function enterMainApp() {
+        document.getElementById('auth-screen').classList.remove('active');
+        document.getElementById('bottom-nav').style.display = 'flex';
+        loadProfileData();
+        switchTab('camera');
+    }
+
     // --- PROFILE MANAGEMENT & EDITING ---
     async function loadProfileData() {
         if (!currentUser) return;
-        const { data, error } = await client.from('profiles').select('*').eq('id', currentUser.id).single();
+        const { data } = await client.from('profiles').select('*').eq('id', currentUser.id).single();
         if (data) {
             userProfile = data;
             document.getElementById('display-username').innerText = data.username || 'Not set';
@@ -765,9 +942,6 @@
             if (data.avatar_url) {
                 document.getElementById('prof-avatar-img').src = data.avatar_url;
             }
-        } else if (error) {
-            // Self-heal missing profile row
-            await client.from('profiles').insert([{ id: currentUser.id }]);
         }
     }
 
@@ -791,7 +965,6 @@
             input.style.display = 'none';
             btn.innerText = '✏️';
 
-            // Push update to Supabase database
             const { error } = await client.from('profiles').update({ [field]: newValue }).eq('id', currentUser.id);
             if (error) alert("Failed to save changes: " + error.message);
         }
@@ -886,7 +1059,7 @@
         const feed = document.getElementById('posts-feed');
         feed.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Loading posts...</div>';
         
-        const { data, error } = await client.from('posts').select(`*, profiles(first_name, username, avatar_url)`).order('created_at', { ascending: false });
+        const { data } = await client.from('posts').select(`*, profiles(first_name, username, avatar_url)`).order('created_at', { ascending: false });
         feed.innerHTML = '';
         
         if (data && data.length > 0) {
@@ -939,7 +1112,7 @@
                         <div style="font-weight:600;">${user.first_name || ''} ${user.last_name || ''}</div>
                         <div style="font-size:0.85rem; color:var(--text-muted);">@${user.username || 'n/a'}</div>
                     </div>
-                    <button class="btn-glass" style="padding: 10px 18px; font-size:0.9rem;" onclick="addFriend('${user.id}')">Add</button>
+                    <button class="btn-glass" style="width:auto; padding: 10px 18px; font-size:0.9rem;" onclick="addFriend('${user.id}')">Add</button>
                 `;
                 list.appendChild(div);
             });
