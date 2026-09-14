@@ -7,9 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ==========================================================================
-           1. CORE VARIABLES & LIQUID GLASS DESIGN SYSTEM
-           ================================================================---------- */
         :root {
             --glass-bg: rgba(255, 255, 255, 0.12);
             --glass-bg-hover: rgba(255, 255, 255, 0.2);
@@ -25,7 +22,6 @@
             --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Global Resets */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -36,7 +32,6 @@
         }
         *::-webkit-scrollbar { display: none; }
 
-        /* Dynamic Animated Background */
         body {
             background: linear-gradient(-45deg, #f12711, #f5af19, #4facfe, #00f2fe, #b224ef, #7579ff);
             background-size: 500% 500%;
@@ -56,7 +51,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* App Wrapper */
         .app-container {
             width: 100%;
             max-width: 440px;
@@ -79,9 +73,6 @@
             }
         }
 
-        /* ==========================================================================
-           2. ANIMATED SCREENS & VIEW LAYOUTS
-           ================================================================---------- */
         .screen {
             position: absolute;
             top: 0;
@@ -104,7 +95,6 @@
             z-index: 10;
         }
 
-        /* Glass Surface Components */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: var(--blur);
@@ -113,10 +103,6 @@
             border-radius: 28px;
             box-shadow: var(--glass-shadow), var(--glass-inset);
             transition: var(--transition-smooth);
-        }
-
-        .glass-panel:hover {
-            border-color: var(--glass-border-bright);
         }
 
         .glass-header {
@@ -134,9 +120,6 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
-        /* ==========================================================================
-           3. FORM CONTROLS, INPUTS & GLASS BUTTONS
-           ================================================================---------- */
         .input-box {
             width: 100%;
             padding: 16px 20px;
@@ -193,9 +176,6 @@
             background: var(--glass-bg-active);
         }
 
-        /* ==========================================================================
-           4. USER AVATARS & PROFILE EDITING INTERACTION
-           ================================================================---------- */
         .avatar {
             width: 52px;
             height: 52px;
@@ -228,14 +208,6 @@
             transition: var(--transition-bounce);
         }
 
-        .profile-avatar-wrapper:hover {
-            transform: scale(1.05);
-        }
-
-        .profile-avatar-wrapper:active {
-            transform: scale(0.92);
-        }
-
         .profile-avatar-large {
             width: 110px;
             height: 110px;
@@ -259,11 +231,6 @@
             align-items: center;
             font-size: 1rem;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: var(--transition-bounce);
-        }
-
-        .profile-avatar-wrapper:hover .edit-badge {
-            transform: scale(1.15) rotate(10deg);
         }
 
         .profile-field {
@@ -275,12 +242,6 @@
             padding: 14px 18px;
             border-radius: 18px;
             border: 1px solid rgba(255,255,255,0.1);
-            transition: var(--transition-smooth);
-        }
-
-        .profile-field:hover {
-            background: rgba(0, 0, 0, 0.3);
-            border-color: var(--glass-border);
         }
 
         .profile-field .label {
@@ -308,21 +269,8 @@
             color: white;
             padding: 6px;
             border-radius: 50%;
-            transition: var(--transition-bounce);
         }
 
-        .edit-btn:hover {
-            transform: scale(1.2);
-            background: rgba(255,255,255,0.15);
-        }
-
-        .edit-btn:active {
-            transform: scale(0.8) rotate(15deg);
-        }
-
-        /* ==========================================================================
-           5. SCROLL LISTS & ANIMATED CARDS
-           ================================================================---------- */
         .scroll-area {
             flex: 1;
             overflow-y: auto;
@@ -341,38 +289,9 @@
             border: 1px solid var(--glass-border);
             backdrop-filter: var(--blur);
             -webkit-backdrop-filter: var(--blur);
-            transition: var(--transition-smooth);
-            animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
         }
 
-        .list-item:hover {
-            background: var(--glass-bg-hover);
-            transform: translateY(-2px);
-            border-color: var(--glass-border-bright);
-        }
-
-        .list-item:active {
-            transform: scale(0.97);
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(25px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* ==========================================================================
-           6. CAMERA & EXPLORE FEED SCREENS
-           ================================================================---------- */
-        #camera-screen {
-            background: #000;
-        }
-
+        #camera-screen { background: #000; }
         #camera-feed {
             position: absolute;
             top: 0;
@@ -400,25 +319,13 @@
             background: rgba(255, 255, 255, 0.25);
             backdrop-filter: var(--blur);
             cursor: pointer;
-            transition: var(--transition-bounce);
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-
-        .capture-btn:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .capture-btn:active {
-            transform: scale(0.82);
-            background: white;
         }
 
         .post-card {
             border-radius: 26px;
             overflow: hidden;
             padding: 16px;
-            animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
         }
 
         .post-img {
@@ -429,9 +336,6 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.25);
         }
 
-        /* ==========================================================================
-           7. ACTIVE REAL-TIME CHAT ROOM
-           ================================================================---------- */
         #active-chat-screen {
             z-index: 40;
             transform: translateX(101%);
@@ -440,9 +344,7 @@
             -webkit-backdrop-filter: blur(24px);
         }
 
-        #active-chat-screen.active {
-            transform: translateX(0);
-        }
+        #active-chat-screen.active { transform: translateX(0); }
 
         .chat-messages {
             flex: 1;
@@ -459,7 +361,6 @@
             border-radius: 20px;
             font-size: 0.95rem;
             line-height: 1.45;
-            animation: fadeInUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) backwards;
             word-wrap: break-word;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
@@ -480,9 +381,6 @@
             border: 1px solid rgba(255,255,255,0.4);
         }
 
-        /* ==========================================================================
-           8. FLOATING BOTTOM NAVIGATION BAR
-           ================================================================---------- */
         .bottom-nav {
             position: absolute;
             bottom: 20px;
@@ -504,15 +402,10 @@
         .nav-item {
             font-size: 1.4rem;
             opacity: 0.55;
-            transition: var(--transition-bounce);
             cursor: pointer;
             padding: 8px;
             border-radius: 50%;
-        }
-
-        .nav-item:hover {
-            opacity: 0.9;
-            transform: translateY(-3px);
+            transition: var(--transition-bounce);
         }
 
         .nav-item.active {
@@ -520,10 +413,8 @@
             transform: translateY(-8px) scale(1.25);
             background: rgba(255, 255, 255, 0.25);
             box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         }
 
-        /* Utility Helpers */
         .error-msg {
             color: #ff8b8b;
             background: rgba(255, 0, 0, 0.15);
@@ -533,10 +424,8 @@
             margin-top: 15px;
             font-size: 0.9rem;
             display: none;
-            animation: fadeInUp 0.3s ease;
         }
 
-        /* Profile Setup Modal Overlay */
         #profile-setup-modal {
             display: none;
             position: fixed;
@@ -557,7 +446,6 @@
             width: 100%;
             max-width: 400px;
             color: #fff;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -565,13 +453,11 @@
 
 <div class="app-container">
     
-    <!-- ==========================================================
-       1. AUTH SCREEN (Email & Password + Google Login Box)
-       ========================================================== -->
+    <!-- 1. AUTH SCREEN -->
     <div id="auth-screen" class="screen active" style="justify-content: center; padding: 25px;">
         <div class="glass-panel" style="padding: 35px 25px; text-align: center;">
-            <h1 style="font-size: 2.8rem; margin-bottom: 6px; font-weight: 800; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Dare</h1>
-            <p style="margin-bottom: 25px; color: var(--text-muted); font-size: 1rem;">Dynamic social connectivity.</p>
+            <h1 style="font-size: 2.8rem; margin-bottom: 6px; font-weight: 800;">Dare</h1>
+            <p style="margin-bottom: 25px; color: var(--text-muted);">Dynamic social connectivity.</p>
             
             <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px;">
                 <input type="email" id="auth-email" class="input-box" placeholder="Email address">
@@ -583,10 +469,8 @@
                 <button class="btn-glass" style="background: rgba(255,255,255,0.3);" onclick="handleAuth('signin')">Log In</button>
             </div>
 
-            <!-- Secondary Bubble / Container for External Providers -->
             <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15);">
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Or connect instantly</p>
-                <!-- Google Button positioned below main actions inside second bigger bubble -->
                 <button class="btn-glass" style="background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="handleGoogleLogin()">
                     <svg style="width:18px; height:18px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.6 9.5c0-.6-.1-1.3-.2-1.9H12v3.8h3.7c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.6-3.7 2.6-6.5zM12 23c3.2 0 6-1.1 8-3l-2.7-2.1c-1.1.7-2.5 1.2-5.3 1.2-3.1 0-5.8-2.1-6.7-5H1.4l-3.7 2.9C3.5 20.4 7.4 23 12 23z"/></svg>
                     Sign in with Google
@@ -597,31 +481,25 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-       2. CAMERA CAPTURE SCREEN
-       ========================================================== -->
+    <!-- 2. CAMERA SCREEN -->
     <div id="camera-screen" class="screen">
         <video id="camera-feed" autoplay playsinline></video>
         <canvas id="camera-canvas" style="display:none;"></canvas>
         <div class="camera-overlay">
-            <button class="capture-btn" onclick="captureAndPost()" title="Capture photo"></button>
+            <button class="capture-btn" onclick="captureAndPost()"></button>
         </div>
     </div>
 
-    <!-- ==========================================================
-       3. EXPLORE POSTS FEED SCREEN
-       ========================================================== -->
+    <!-- 3. POSTS FEED SCREEN -->
     <div id="posts-screen" class="screen">
         <div class="glass-header">
             <h2>Explore Feed</h2>
-            <button class="edit-btn" onclick="loadPosts()" title="Refresh">🔄</button>
+            <button class="edit-btn" onclick="loadPosts()">🔄</button>
         </div>
         <div class="scroll-area" id="posts-feed"></div>
     </div>
 
-    <!-- ==========================================================
-       4. FIND FRIENDS SCREEN
-       ========================================================== -->
+    <!-- 4. FIND FRIENDS SCREEN -->
     <div id="friends-screen" class="screen">
         <div class="glass-header"><h2>Find Friends</h2></div>
         <div style="padding: 0 20px 12px; display:flex; gap:10px;">
@@ -631,57 +509,48 @@
         <div class="scroll-area" id="friends-list"></div>
     </div>
 
-    <!-- ==========================================================
-       5. CHATS LIST SCREEN
-       ========================================================== -->
+    <!-- 5. CHATS LIST SCREEN -->
     <div id="chats-screen" class="screen">
         <div class="glass-header"><h2>Messages</h2></div>
         <div class="scroll-area" id="chats-list"></div>
     </div>
 
-    <!-- ==========================================================
-       6. INTERACTIVE PROFILE SCREEN (Editable with ✏️ and 💾)
-       ========================================================== -->
+    <!-- 6. PROFILE SCREEN -->
     <div id="profile-screen" class="screen">
         <div class="glass-header"><h2>My Profile</h2></div>
         <div class="scroll-area">
             <div class="glass-panel profile-card">
-                
-                <!-- Avatar Upload Input & Trigger -->
                 <input type="file" id="avatar-upload" style="display:none;" accept="image/*" onchange="uploadAvatar(event)">
-                <div class="profile-avatar-wrapper" onclick="document.getElementById('avatar-upload').click()" title="Change Avatar">
+                <div class="profile-avatar-wrapper" onclick="document.getElementById('avatar-upload').click()">
                     <img id="prof-avatar-img" src="https://via.placeholder.com/120" class="profile-avatar-large">
                     <div class="edit-badge">📷</div>
                 </div>
 
-                <!-- Editable Username Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">Username</span>
                         <span id="display-username" class="value">Loading...</span>
-                        <input type="text" id="input-username" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter username">
+                        <input type="text" id="input-username" class="input-box" style="display:none; margin-top:8px; padding:10px;">
                     </div>
-                    <button id="btn-edit-username" class="edit-btn" onclick="toggleEdit('username')" title="Edit Username">✏️</button>
+                    <button id="btn-edit-username" class="edit-btn" onclick="toggleEdit('username')">✏️</button>
                 </div>
 
-                <!-- Editable First Name Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">First Name</span>
                         <span id="display-first_name" class="value">Loading...</span>
-                        <input type="text" id="input-first_name" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter first name">
+                        <input type="text" id="input-first_name" class="input-box" style="display:none; margin-top:8px; padding:10px;">
                     </div>
-                    <button id="btn-edit-first_name" class="edit-btn" onclick="toggleEdit('first_name')" title="Edit First Name">✏️</button>
+                    <button id="btn-edit-first_name" class="edit-btn" onclick="toggleEdit('first_name')">✏️</button>
                 </div>
 
-                <!-- Editable Last Name Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">Last Name</span>
                         <span id="display-last_name" class="value">Loading...</span>
-                        <input type="text" id="input-last_name" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter last name">
+                        <input type="text" id="input-last_name" class="input-box" style="display:none; margin-top:8px; padding:10px;">
                     </div>
-                    <button id="btn-edit-last_name" class="edit-btn" onclick="toggleEdit('last_name')" title="Edit Last Name">✏️</button>
+                    <button id="btn-edit-last_name" class="edit-btn" onclick="toggleEdit('last_name')">✏️</button>
                 </div>
                 
                 <button class="btn-glass" style="background: rgba(255, 50, 50, 0.25); border-color: rgba(255,100,100,0.4); margin-top: 10px;" onclick="logout()">Log Out</button>
@@ -689,12 +558,10 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-       7. ACTIVE DM CHAT ROOM
-       ========================================================== -->
+    <!-- 7. ACTIVE DM CHAT ROOM -->
     <div id="active-chat-screen" class="screen">
         <div class="glass-header glass-panel" style="border-radius:0 0 28px 28px; padding: 20px; margin: 0 10px;">
-            <button class="edit-btn" onclick="closeChat()" title="Back">←</button>
+            <button class="edit-btn" onclick="closeChat()">←</button>
             <h2 id="active-chat-title" style="font-size: 1.2rem;">Chat Room</h2>
             <div style="width:36px;"></div>
         </div>
@@ -705,22 +572,18 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-       8. FLOATING BOTTOM NAVIGATION
-       ========================================================== -->
+    <!-- 8. NAVIGATION -->
     <div class="bottom-nav" id="bottom-nav" style="display:none;">
-        <div class="nav-item" onclick="switchTab('posts')" title="Explore">📰</div>
-        <div class="nav-item" onclick="switchTab('friends')" title="Find Friends">🔍</div>
-        <div class="nav-item active" onclick="switchTab('camera')" title="Camera">📷</div>
-        <div class="nav-item" onclick="switchTab('chats')" title="Messages">💬</div>
-        <div class="nav-item" onclick="switchTab('profile')" title="Profile">👤</div>
+        <div class="nav-item" onclick="switchTab('posts')">📰</div>
+        <div class="nav-item" onclick="switchTab('friends')">🔍</div>
+        <div class="nav-item active" onclick="switchTab('camera')">📷</div>
+        <div class="nav-item" onclick="switchTab('chats')">💬</div>
+        <div class="nav-item" onclick="switchTab('profile')">👤</div>
     </div>
 
 </div>
 
-<!-- ==========================================================
-   9. PROFILE SETUP MODAL (For new users & OAuth flows lacking data)
-   ========================================================== -->
+<!-- 9. PROFILE SETUP MODAL -->
 <div id="profile-setup-modal">
     <div class="modal-content">
         <h3 style="margin-top: 0; margin-bottom: 8px; font-weight: 700;">Complete Your Profile</h3>
@@ -746,11 +609,7 @@
     </div>
 </div>
 
-<!-- ==========================================================
-   10. COMPLETE APPLICATION LOGIC & SUPABASE INTEGRATION
-   ========================================================== -->
 <script>
-    // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = 'https://egzkmrddetiggrcvrjoq.supabase.co';
     const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE'; 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -761,27 +620,40 @@
     let messageSubscription = null;
     let userProfile = {};
 
-    // --- INITIALIZATION & OAUTH TOKEN CLEANUP ---
+    // --- APPLICATION STARTUP & OAUTH HASH CLEANUP ---
     window.addEventListener('DOMContentLoaded', async () => {
-        // Clean up ugly Supabase OAuth hash fragments (#access_token=...) from the URL bar cleanly
+        // Clean up Supabase OAuth hash fragments (#access_token=...) from the URL bar immediately
         if (window.location.hash.includes('access_token')) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
         
         const { data: { session } } = await client.auth.getSession();
-        if (session) {
+        if (session && session.user) {
             currentUser = session.user;
             await verifyUserProfileAndRedirect(currentUser);
+        } else {
+            showAuthScreen();
         }
     });
 
     // --- AUTHENTICATION STATE OBSERVER ---
     client.auth.onAuthStateChange(async (event, session) => {
-        if (session && !currentUser) {
+        if (session && session.user) {
             currentUser = session.user;
             await verifyUserProfileAndRedirect(currentUser);
+        } else if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            showAuthScreen();
         }
     });
+
+    function showAuthScreen() {
+        stopCamera();
+        document.getElementById('bottom-nav').style.display = 'none';
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('auth-screen').classList.add('active');
+        document.getElementById('profile-setup-modal').style.display = 'none';
+    }
 
     async function handleAuth(type) {
         const email = document.getElementById('auth-email').value.trim();
@@ -832,7 +704,7 @@
 
     async function logout() {
         await client.auth.signOut();
-        window.location.reload();
+        showAuthScreen();
     }
 
     // --- PROFILE VERIFICATION & SETUP MODAL WORKFLOW ---
@@ -840,7 +712,6 @@
         const { data, error } = await client.from('profiles').select('*').eq('id', user.id).single();
 
         if (!data || !data.username || !data.first_name) {
-            // Extract pre-filled details from Google or provider metadata if available
             const meta = user.user_metadata || {};
             if (meta.given_name) document.getElementById('setup-firstname').value = meta.given_name;
             if (meta.family_name) document.getElementById('setup-lastname').value = meta.family_name;
@@ -848,7 +719,6 @@
             let baseName = (meta.name || user.email.split('@')[0]).replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
             generateUsernameSuggestions(baseName);
 
-            // Display setup modal
             document.getElementById('profile-setup-modal').style.display = 'flex';
         } else {
             userProfile = data;
@@ -930,7 +800,6 @@
         switchTab('camera');
     }
 
-    // --- PROFILE MANAGEMENT & EDITING ---
     async function loadProfileData() {
         if (!currentUser) return;
         const { data } = await client.from('profiles').select('*').eq('id', currentUser.id).single();
@@ -998,7 +867,6 @@
         avatarImg.style.opacity = '1';
     }
 
-    // --- NAVIGATION CONTROLLER ---
     const tabs = ['camera', 'posts', 'friends', 'chats', 'profile'];
     function switchTab(tab) {
         tabs.forEach(t => document.getElementById(t + '-screen')?.classList.remove('active'));
@@ -1013,7 +881,6 @@
         if (tab === 'chats') loadFriendsForChat();
     }
 
-    // --- CAMERA & POSTS SYSTEM ---
     async function startCamera() {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             try {
@@ -1066,7 +933,6 @@
             data.forEach((post, i) => {
                 const div = document.createElement('div');
                 div.className = 'glass-panel post-card';
-                div.style.animationDelay = `${i * 0.08}s`;
                 
                 const avatarHtml = post.profiles?.avatar_url 
                     ? `<img src="${post.profiles.avatar_url}" class="avatar" style="width:38px; height:38px;">` 
@@ -1089,7 +955,6 @@
         }
     }
 
-    // --- FRIEND SEARCH & CONNECTIONS ---
     async function searchUsers() {
         const query = document.getElementById('friend-search').value.toLowerCase().trim();
         const list = document.getElementById('friends-list');
@@ -1099,10 +964,9 @@
         list.innerHTML = '';
 
         if (data && data.length > 0) {
-            data.forEach((user, i) => {
+            data.forEach((user) => {
                 const div = document.createElement('div');
                 div.className = 'list-item';
-                div.style.animationDelay = `${i * 0.08}s`;
                 
                 const avatarHtml = user.avatar_url ? `<img src="${user.avatar_url}" class="avatar">` : `<div class="avatar">${user.first_name?.[0] || user.username?.[0] || '?'}</div>`;
                 
@@ -1130,7 +994,6 @@
         }
     }
 
-    // --- REAL-TIME DIRECT MESSAGING ---
     async function loadFriendsForChat() {
         const container = document.getElementById('chats-list');
         container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Loading chats...</div>';
@@ -1147,11 +1010,10 @@
         const { data: friends } = await client.from('profiles').select('*').in('id', friendIds);
 
         if (friends && friends.length > 0) {
-            friends.forEach((friend, i) => {
+            friends.forEach((friend) => {
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 div.style.cursor = 'pointer';
-                div.style.animationDelay = `${i * 0.08}s`;
                 div.onclick = () => openChat(friend.id, friend.first_name || friend.username || 'Chat');
                 
                 const avatarHtml = friend.avatar_url ? `<img src="${friend.avatar_url}" class="avatar">` : `<div class="avatar">${friend.first_name?.[0] || friend.username?.[0] || '?'}</div>`;
