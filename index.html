@@ -1,1171 +1,200 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#2f2450">
-  <meta name="description" content="DareClock is a spontaneous photo-dare app for close friends.">
-  <title>DareClock — show your real day</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #24203a;
-      --muted: #726c82;
-      --paper: #f8f5f0;
-      --card: #ffffff;
-      --line: #e8e2dd;
-      --purple: #6047df;
-      --purple-dark: #372867;
-      --lilac: #ece8ff;
-      --coral: #ff806f;
-      --yellow: #ffd95b;
-      --mint: #c7f1df;
-      --shadow: 0 16px 36px rgba(41, 29, 77, .10);
-      --radius: 24px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Group Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; height: 100vh; }
+        .container { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Auth Screen */
+        #auth-screen { padding: 40px 20px; text-align: center; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { width: 95%; padding: 10px; margin: 5px 0; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .google-btn { background: #db4437; }
+        .google-btn:hover { background: #c23321; }
 
-    * { box-sizing: border-box; }
-    html { min-height: 100%; background: var(--paper); }
-    body {
-      min-width: 320px;
-      min-height: 100vh;
-      margin: 0;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 0 0, rgba(255, 217, 91, .26), transparent 25rem),
-        radial-gradient(circle at 100% 18%, rgba(198, 181, 255, .30), transparent 28rem),
-        var(--paper);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-      outline: 3px solid rgba(96, 71, 223, .32);
-      outline-offset: 2px;
-    }
-    img { display: block; max-width: 100%; }
-    .screen-reader-only {
-      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
-      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
-    }
-
-    .app-shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; padding: 22px 0 106px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 30px; }
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 850; letter-spacing: -.04em; font-size: 1.18rem; }
-    .brand-mark {
-      position: relative; width: 35px; height: 35px; border-radius: 13px;
-      background: linear-gradient(135deg, var(--purple), #9f85ff); box-shadow: 0 6px 15px rgba(96, 71, 223, .27);
-    }
-    .brand-mark::before, .brand-mark::after { content: ""; position: absolute; border-radius: 999px; background: white; }
-    .brand-mark::before { width: 7px; height: 7px; top: 9px; left: 9px; box-shadow: 11px 0 0 white; }
-    .brand-mark::after { width: 14px; height: 6px; left: 10px; bottom: 9px; }
-    .topbar-actions { display: flex; align-items: center; gap: 9px; }
-    .sync-pill, .tag, .mini-tag {
-      display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; font-size: .75rem; font-weight: 750;
-    }
-    .sync-pill { padding: 8px 11px; background: #fff; border: 1px solid var(--line); color: var(--muted); }
-    .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #f1a941; }
-    .sync-pill.is-live .sync-dot { background: #37b67c; box-shadow: 0 0 0 4px rgba(55, 182, 124, .12); }
-    .icon-button {
-      display: inline-grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line);
-      background: #fff; color: var(--ink); border-radius: 15px; font-weight: 800;
-    }
-    .avatar-button { width: 42px; height: 42px; padding: 0; border: 0; border-radius: 15px; background: linear-gradient(140deg, #ffbd7b, #ff7e8d 55%, #9b7eff); color: #fff; font-weight: 850; }
-
-    .view { display: none; animation: reveal .28s ease both; }
-    .view.is-active { display: block; }
-    @keyframes reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-    .welcome-row { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
-    .eyebrow { margin: 0 0 8px; color: var(--purple); font-size: .77rem; font-weight: 850; text-transform: uppercase; letter-spacing: .12em; }
-    h1, h2, h3, p { margin-top: 0; }
-    h1 { margin-bottom: 0; font-size: clamp(1.8rem, 4vw, 2.65rem); line-height: 1.02; letter-spacing: -.06em; }
-    h2 { margin-bottom: 7px; font-size: 1.18rem; letter-spacing: -.035em; }
-    h3 { margin-bottom: 6px; font-size: .99rem; letter-spacing: -.02em; }
-    .subhead { margin: 0; color: var(--muted); line-height: 1.5; }
-
-    .button {
-      min-height: 45px; padding: 11px 16px; border: 0; border-radius: 15px; font-weight: 800;
-      transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
-    }
-    .button:hover { transform: translateY(-1px); }
-    .button-primary { color: #fff; background: var(--purple); box-shadow: 0 8px 18px rgba(96, 71, 223, .23); }
-    .button-secondary { color: var(--purple-dark); background: #fff; border: 1px solid var(--line); }
-    .button-quiet { color: var(--purple-dark); background: var(--lilac); }
-    .button-danger { color: #a9333a; background: #fff0f0; }
-    .button.small { min-height: 35px; padding: 7px 11px; border-radius: 12px; font-size: .8rem; }
-    .button.full { width: 100%; }
-
-    .today-layout { display: grid; grid-template-columns: minmax(0, 1.38fr) minmax(280px, .82fr); gap: 19px; align-items: start; }
-    .daily-card { position: relative; isolation: isolate; overflow: hidden; min-height: 390px; padding: clamp(24px, 4vw, 42px); color: #fff; border-radius: 31px; background: linear-gradient(135deg, #34265f 0%, #5a41c7 60%, #866ce5 100%); box-shadow: 0 18px 46px rgba(61, 42, 132, .24); }
-    .daily-card::before { content: ""; position: absolute; z-index: -1; width: 290px; height: 290px; right: -90px; top: -100px; border-radius: 50%; background: rgba(255, 217, 91, .95); }
-    .daily-card::after { content: ""; position: absolute; z-index: -1; width: 230px; height: 230px; left: -110px; bottom: -135px; border-radius: 50%; background: rgba(255, 128, 111, .7); }
-    .daily-card .eyebrow { color: #fff3b6; }
-    .daily-card h2 { max-width: 510px; margin: 0 0 16px; font-size: clamp(1.58rem, 3.4vw, 2.4rem); line-height: 1.06; letter-spacing: -.055em; }
-    .daily-card-copy { max-width: 440px; margin-bottom: 27px; color: rgba(255,255,255,.84); line-height: 1.55; }
-    .daily-meta { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 24px; }
-    .daily-meta span { padding: 8px 10px; border: 1px solid rgba(255,255,255,.20); border-radius: 999px; background: rgba(35, 22, 77, .17); color: #fff; font-size: .78rem; font-weight: 740; backdrop-filter: blur(6px); }
-    .daily-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-    .daily-card .button-primary { color: var(--purple-dark); background: var(--yellow); box-shadow: none; }
-    .daily-card .button-secondary { color: #fff; border-color: rgba(255,255,255,.36); background: rgba(255,255,255,.12); }
-
-    .side-column { display: grid; gap: 18px; }
-    .card { padding: 20px; border: 1px solid rgba(232, 226, 221, .9); border-radius: var(--radius); background: rgba(255,255,255,.9); box-shadow: 0 8px 25px rgba(65, 48, 92, .045); }
-    .card-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
-    .link-button { padding: 0; color: var(--purple); border: 0; background: transparent; font-size: .82rem; font-weight: 800; }
-    .streak-card { background: linear-gradient(135deg, #fff7d3, #ffe5a5); border-color: transparent; }
-    .streak-number { display: flex; align-items: baseline; gap: 7px; margin: 3px 0 13px; font-size: 2.55rem; font-weight: 900; letter-spacing: -.08em; }
-    .streak-number small { color: #705d20; font-size: .82rem; font-weight: 800; letter-spacing: 0; }
-    .mini-dots { display: flex; gap: 7px; }
-    .mini-dots span { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 10px; color: #82631c; background: rgba(255,255,255,.65); font-size: .7rem; font-weight: 900; }
-    .mini-dots span.done { color: #fff; background: #f1ad2b; }
-    .safety-note { display: flex; gap: 10px; color: #5d576b; font-size: .84rem; line-height: 1.42; }
-    .safety-icon { flex: 0 0 auto; display: grid; place-items: center; width: 29px; height: 29px; border-radius: 10px; color: #226c4d; background: var(--mint); }
-    .safety-note strong { display: block; color: var(--ink); margin-bottom: 2px; }
-
-    .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 34px 0 14px; }
-    .section-heading h2 { margin: 0; }
-    .activity-list, .dare-list, .feed-grid { display: grid; gap: 12px; }
-    .activity-item { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.72); }
-    .activity-icon { display: grid; place-items: center; flex: 0 0 auto; width: 37px; height: 37px; border-radius: 13px; background: var(--lilac); }
-    .activity-item p { margin: 2px 0 0; color: var(--muted); font-size: .83rem; }
-    .activity-item strong { font-size: .88rem; }
-    .activity-time { margin-left: auto; align-self: flex-start; color: var(--muted); font-size: .75rem; white-space: nowrap; }
-
-    .view-header { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
-    .dare-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .dare-item { position: relative; overflow: hidden; min-height: 220px; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
-    .dare-item::before { content: ""; position: absolute; width: 100px; height: 100px; top: -54px; right: -38px; border-radius: 50%; background: var(--lilac); }
-    .dare-item.is-community::before { background: #fff0c7; }
-    .dare-top { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .tag { padding: 6px 9px; color: var(--purple-dark); background: var(--lilac); }
-    .tag.community { color: #815600; background: #fff0c5; }
-    .tag.complete { color: #16704b; background: #dff7ea; }
-    .dare-item h3 { position: relative; margin-bottom: 8px; font-size: 1.15rem; line-height: 1.23; }
-    .dare-item p { position: relative; color: var(--muted); font-size: .86rem; line-height: 1.45; }
-    .dare-footer { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 18px; }
-    .handle { color: var(--purple); font-size: .8rem; font-weight: 800; }
-    .actions-inline { display: flex; flex-wrap: wrap; gap: 8px; }
-    .empty-state { padding: 35px 21px; border: 1.5px dashed #dcd3cc; border-radius: var(--radius); color: var(--muted); text-align: center; background: rgba(255,255,255,.5); }
-    .empty-state .empty-icon { display: grid; place-items: center; width: 49px; height: 49px; margin: 0 auto 11px; border-radius: 17px; background: var(--lilac); font-size: 1.35rem; }
-    .empty-state h3 { color: var(--ink); }
-
-    .feed-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .post-card { overflow: hidden; min-width: 0; border: 1px solid var(--line); border-radius: 22px; background: #fff; box-shadow: 0 8px 24px rgba(65,48,92,.045); }
-    .post-image, .photo-art { position: relative; aspect-ratio: .82; width: 100%; overflow: hidden; background: #eee; }
-    .post-image { object-fit: cover; }
-    .photo-art { display: grid; place-items: center; isolation: isolate; font-size: clamp(2.6rem, 7vw, 4.8rem); }
-    .photo-art::before, .photo-art::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; }
-    .photo-art.coral { background: linear-gradient(145deg, #fb927e, #e85f8b); }
-    .photo-art.coral::before { width: 70%; height: 70%; top: -18%; right: -16%; background: #ffd678; }
-    .photo-art.coral::after { width: 58%; height: 58%; bottom: -17%; left: -16%; background: rgba(255,255,255,.30); }
-    .photo-art.mint { background: linear-gradient(145deg, #89dac5, #3ba5a2); }
-    .photo-art.mint::before { width: 80%; height: 80%; left: -33%; bottom: -37%; background: #ffda66; }
-    .photo-art.mint::after { width: 50%; height: 50%; right: -17%; top: 5%; background: rgba(255,255,255,.28); }
-    .photo-art.lilac { background: linear-gradient(145deg, #a895ec, #7259d1); }
-    .photo-art.lilac::before { width: 67%; height: 67%; top: -20%; left: -15%; background: #ffbd8c; }
-    .photo-art.lilac::after { width: 54%; height: 54%; bottom: -22%; right: -12%; background: rgba(255,255,255,.26); }
-    .post-body { padding: 14px; }
-    .post-author { display: flex; align-items: center; gap: 8px; min-width: 0; }
-    .micro-avatar { display: grid; place-items: center; flex: 0 0 auto; width: 28px; height: 28px; border-radius: 10px; color: #fff; background: linear-gradient(135deg, #8068dc, #ff8f7f); font-size: .68rem; font-weight: 850; }
-    .post-author strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
-    .post-author time { margin-left: auto; color: var(--muted); font-size: .7rem; white-space: nowrap; }
-    .post-dare { margin: 11px 0 4px; color: var(--purple); font-size: .72rem; font-weight: 800; }
-    .post-caption { min-height: 2.5em; margin: 0; color: #575162; font-size: .8rem; line-height: 1.42; }
-    .post-actions { display: flex; align-items: center; gap: 7px; margin-top: 12px; }
-    .reaction-button { min-height: 31px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; font-size: .75rem; }
-    .post-actions .link-button { margin-left: auto; color: var(--muted); font-size: .7rem; }
-
-    .profile-layout { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 18px; }
-    .profile-card { text-align: center; }
-    .profile-avatar { display: grid; place-items: center; width: 86px; height: 86px; margin: 4px auto 14px; border-radius: 29px; color: white; background: linear-gradient(145deg, #ffbf75, #ff7e8f 50%, #8d73e7); box-shadow: 0 10px 20px rgba(255,126,143,.21); font-size: 1.65rem; font-weight: 900; }
-    .profile-card h2 { margin-bottom: 4px; }
-    .profile-card p { color: var(--muted); }
-    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); margin: 22px 0; border: 1px solid var(--line); border-radius: 17px; overflow: hidden; }
-    .stat { padding: 12px 5px; }
-    .stat + .stat { border-left: 1px solid var(--line); }
-    .stat strong { display: block; font-size: 1.08rem; }
-    .stat span { color: var(--muted); font-size: .69rem; font-weight: 700; }
-    .memory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-    .memory { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 16px; background: var(--lilac); }
-    .memory img { width: 100%; height: 100%; object-fit: cover; }
-    .memory.art { display: grid; place-items: center; font-size: 1.65rem; }
-
-    .mobile-nav { position: fixed; z-index: 20; bottom: max(12px, env(safe-area-inset-bottom)); left: 50%; display: flex; align-items: center; justify-content: space-between; width: min(520px, calc(100% - 24px)); height: 70px; padding: 7px; border: 1px solid rgba(232,226,221,.85); border-radius: 23px; background: rgba(255,255,255,.91); box-shadow: 0 12px 36px rgba(42,31,71,.17); backdrop-filter: blur(15px); transform: translateX(-50%); }
-    .nav-button { display: grid; place-items: center; gap: 2px; min-width: 54px; height: 54px; padding: 4px 8px; color: var(--muted); border: 0; border-radius: 17px; background: transparent; font-size: .64rem; font-weight: 780; }
-    .nav-icon { font-size: 1.16rem; line-height: 1; }
-    .nav-button.is-active { color: var(--purple); background: var(--lilac); }
-    .nav-camera { width: 54px; color: #fff; background: var(--purple); box-shadow: 0 5px 13px rgba(96,71,223,.28); font-size: 1.5rem; }
-    .nav-camera:hover { background: var(--purple-dark); }
-
-    .modal { position: fixed; z-index: 40; inset: 0; display: grid; place-items: end center; padding: 18px; visibility: hidden; background: rgba(29, 21, 50, .45); opacity: 0; transition: opacity .2s ease, visibility .2s ease; }
-    .modal.is-open { visibility: visible; opacity: 1; }
-    .modal-panel { width: min(570px, 100%); max-height: min(770px, calc(100vh - 36px)); overflow: auto; padding: 25px; border-radius: 29px; background: #fff; box-shadow: 0 24px 65px rgba(22,14,46,.3); transform: translateY(20px); transition: transform .22s ease; }
-    .modal.is-open .modal-panel { transform: translateY(0); }
-    .modal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 21px; }
-    .modal-heading h2 { margin: 0 0 5px; font-size: 1.45rem; }
-    .modal-heading p { margin: 0; color: var(--muted); font-size: .86rem; line-height: 1.45; }
-    .close-button { display: grid; place-items: center; flex: 0 0 auto; width: 37px; height: 37px; border: 0; border-radius: 12px; color: var(--ink); background: #f2eff5; font-size: 1.15rem; }
-    .field { display: grid; gap: 7px; margin-bottom: 15px; }
-    .field label { color: #514a5b; font-size: .82rem; font-weight: 800; }
-    .field-hint { margin-top: -2px; color: var(--muted); font-size: .73rem; line-height: 1.4; }
-    .field input, .field textarea, .field select { width: 100%; padding: 12px 13px; color: var(--ink); border: 1px solid #ddd6d1; border-radius: 13px; background: #fff; }
-    .field textarea { min-height: 95px; resize: vertical; line-height: 1.45; }
-    .template-row { display: flex; flex-wrap: wrap; gap: 7px; margin: -3px 0 15px; }
-    .template { padding: 7px 10px; color: var(--purple-dark); border: 1px solid #dbd1ff; border-radius: 999px; background: #f7f5ff; font-size: .76rem; font-weight: 760; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
-    .photo-picker { display: grid; place-items: center; min-height: 195px; overflow: hidden; border: 1.5px dashed #cfc3bd; border-radius: 19px; color: var(--muted); background: #fcfbfa; text-align: center; }
-    .photo-picker.has-photo { border-style: solid; background: #eee; }
-    .photo-picker img { width: 100%; max-height: 345px; object-fit: cover; }
-    .photo-picker-copy { padding: 20px; }
-    .photo-picker-copy strong { display: block; color: var(--ink); margin: 7px 0 4px; }
-    .photo-picker-copy span { display: block; font-size: .78rem; line-height: 1.4; }
-    .upload-button { margin-top: 13px; }
-    .progress-bar { height: 7px; margin: 13px 0; overflow: hidden; border-radius: 999px; background: #eee9e5; }
-    .progress-bar span { display: block; width: 61%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--coral), #ffbf6f); }
-
-    .toast { position: fixed; z-index: 60; left: 50%; bottom: 100px; width: min(420px, calc(100% - 32px)); padding: 13px 16px; border-radius: 15px; color: #fff; background: #302849; box-shadow: 0 13px 30px rgba(30,20,52,.23); font-size: .86rem; font-weight: 700; line-height: 1.4; opacity: 0; pointer-events: none; transform: translate(-50%, 16px); transition: opacity .18s ease, transform .18s ease; }
-    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
-    .toast.is-error { background: #9a3742; }
-
-    @media (min-width: 720px) {
-      .app-shell { padding-bottom: 38px; }
-      .mobile-nav { position: static; width: auto; height: auto; margin: 26px auto 0; padding: 5px; box-shadow: none; transform: none; background: transparent; border: 0; backdrop-filter: none; }
-      .nav-button { min-width: 84px; height: 45px; grid-auto-flow: column; font-size: .72rem; }
-      .nav-camera { width: 45px; min-width: 45px; font-size: 1.25rem; }
-      .modal { place-items: center; }
-    }
-    @media (max-width: 850px) {
-      .today-layout, .profile-layout { grid-template-columns: 1fr; }
-      .side-column { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 620px) {
-      .app-shell { width: min(100% - 22px, 560px); padding-top: 13px; }
-      .topbar { margin-bottom: 24px; }
-      .sync-pill { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      .welcome-row, .view-header { align-items: flex-start; flex-direction: column; }
-      .welcome-row .button, .view-header .button { width: 100%; }
-      .daily-card { min-height: 382px; border-radius: 26px; }
-      .side-column { grid-template-columns: 1fr; }
-      .dare-list, .feed-grid { grid-template-columns: 1fr; }
-      .feed-grid { gap: 13px; }
-      .post-card { display: grid; grid-template-columns: 113px 1fr; }
-      .post-image, .photo-art { min-height: 145px; height: 100%; aspect-ratio: auto; }
-      .post-body { padding: 13px; }
-      .post-caption { min-height: 0; }
-      .form-row { grid-template-columns: 1fr; gap: 0; }
-      .modal { padding: 9px; }
-      .modal-panel { max-height: calc(100vh - 18px); padding: 21px 18px; border-radius: 25px; }
-      .modal-footer { flex-direction: column-reverse; }
-      .modal-footer .button { width: 100%; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
-    }
-  </style>
+        /* Chat Screen */
+        #chat-screen { display: none; flex-direction: column; height: 100%; }
+        .chat-header { background: #007bff; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header button { width: auto; margin: 0; padding: 5px 10px; background: #dc3545; }
+        #messages-container { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; gap: 10px; }
+        
+        .message { background: white; padding: 10px; border-radius: 8px; max-width: 80%; word-wrap: break-word; }
+        .message small { display: block; color: #888; font-size: 0.8em; margin-bottom: 5px; }
+        .message img { max-width: 100%; border-radius: 5px; margin-top: 5px; }
+        
+        .chat-input-area { display: flex; padding: 10px; background: white; border-top: 1px solid #ccc; }
+        .chat-input-area input[type="text"] { flex: 1; margin: 0; border-radius: 20px; padding: 10px 15px; }
+        .chat-input-area input[type="file"] { display: none; }
+        .file-label { display: flex; align-items: center; justify-content: center; background: #28a745; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; margin: 0 10px; }
+        .chat-input-area button { width: 60px; margin: 0; border-radius: 20px; }
+    </style>
 </head>
 <body>
-  <noscript>This app needs JavaScript to take photos and sync dares.</noscript>
-  <div class="app-shell">
-    <header class="topbar">
-      <a href="#today" class="brand" aria-label="DareClock home"><span class="brand-mark" aria-hidden="true"></span><span>dare.clock</span></a>
-      <div class="topbar-actions">
-        <span class="sync-pill" id="sync-status" title="Connection status"><span class="sync-dot"></span><span id="sync-label">Starting…</span></span>
-        <button class="avatar-button" id="avatar-button" type="button" aria-label="Open your profile">Y</button>
-      </div>
-    </header>
 
-    <main>
-      <section class="view is-active" id="today-view" aria-labelledby="today-title">
-        <div class="welcome-row">
-          <div>
-            <p class="eyebrow" id="date-label">Today</p>
-            <h1 id="today-title">Show your real day, <span id="welcome-name">friend</span>.</h1>
-          </div>
-          <button class="button button-primary" id="global-dare-button" type="button">✦ Give a dare</button>
-        </div>
-
-        <div class="today-layout">
-          <article class="daily-card">
-            <p class="eyebrow">Your photo moment</p>
-            <h2 id="daily-prompt">Show the tiny thing making today better.</h2>
-            <p class="daily-card-copy">No polished feed required. Take one honest photo, add a feeling if you want, and keep the moment.</p>
-            <div class="daily-meta">
-              <span>⏱ <span id="countdown">11h 42m</span> left</span>
-              <span>◌ no location shared</span>
-              <span>✦ easy & safe</span>
-            </div>
-            <div class="daily-actions">
-              <button class="button button-primary" type="button" data-open-post>Take a photo</button>
-              <button class="button button-secondary" type="button" id="swap-daily">Try another prompt</button>
-            </div>
-          </article>
-
-          <aside class="side-column">
-            <article class="card streak-card">
-              <div class="card-heading"><h2>Little streak</h2><span aria-hidden="true">⚡</span></div>
-              <div class="streak-number"><span id="streak-value">2</span><small>days real</small></div>
-              <div class="mini-dots" aria-label="This week: two completed days"><span class="done">M</span><span class="done">T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-            </article>
-            <article class="card">
-              <div class="safety-note">
-                <span class="safety-icon" aria-hidden="true">♧</span>
-                <div><strong>Keep it kind.</strong>Skip any dare, switch it for a safe idea, and share only what feels good.</div>
-              </div>
-            </article>
-          </aside>
-        </div>
-
-        <div class="section-heading"><h2>New around you</h2><button class="link-button" type="button" data-view-target="dares">See dares</button></div>
-        <div class="activity-list" id="activity-list"></div>
-      </section>
-
-      <section class="view" id="dares-view" aria-labelledby="dares-title">
-        <div class="view-header">
-          <div><p class="eyebrow">Your next move</p><h1 id="dares-title">Dares, without the pressure.</h1><p class="subhead">Accept a friendly challenge, swap it, or skip with no explanation.</p></div>
-          <button class="button button-primary" type="button" data-open-dare>✦ Give a dare</button>
-        </div>
-        <div class="section-heading"><h2>For you</h2><span class="tag" id="dare-count">0 waiting</span></div>
-        <div class="dare-list" id="personal-dares"></div>
-        <div class="section-heading"><h2>Community ideas</h2><button class="link-button" type="button" data-open-dare>Make one</button></div>
-        <div class="dare-list" id="community-dares"></div>
-      </section>
-
-      <section class="view" id="feed-view" aria-labelledby="feed-title">
-        <div class="view-header">
-          <div><p class="eyebrow">A little realness</p><h1 id="feed-title">Community moments.</h1><p class="subhead">Only photos people chose to share with the DareClock community appear here.</p></div>
-          <button class="button button-primary" type="button" data-open-post>＋ Share yours</button>
-        </div>
-        <div class="feed-grid" id="feed-grid"></div>
-      </section>
-
-      <section class="view" id="me-view" aria-labelledby="me-title">
-        <div class="view-header"><div><p class="eyebrow">Your corner</p><h1 id="me-title">Your small memory shelf.</h1><p class="subhead">Private memories stay just for you; community posts are clearly labeled before you share.</p></div></div>
-        <div class="profile-layout">
-          <article class="card profile-card">
-            <div class="profile-avatar" id="profile-avatar">Y</div>
-            <h2 id="profile-name">You</h2>
-            <p id="profile-handle">@your-day</p>
-            <div class="stat-row">
-              <div class="stat"><strong id="stat-posts">0</strong><span>moments</span></div>
-              <div class="stat"><strong id="stat-dares">0</strong><span>dares sent</span></div>
-              <div class="stat"><strong id="stat-streak">2</strong><span>day streak</span></div>
-            </div>
-            <button class="button button-secondary full" id="edit-profile-button" type="button">Edit profile</button>
-          </article>
-          <article class="card">
-            <div class="card-heading"><div><h2>Your private shelf</h2><p class="subhead">Only you can see these.</p></div><span aria-hidden="true">🔒</span></div>
-            <div class="memory-grid" id="memory-grid"></div>
-          </article>
-        </div>
-      </section>
-    </main>
-
-    <nav class="mobile-nav" aria-label="Main navigation">
-      <button class="nav-button is-active" type="button" data-view-target="today"><span class="nav-icon" aria-hidden="true">⌂</span><span>Today</span></button>
-      <button class="nav-button" type="button" data-view-target="dares"><span class="nav-icon" aria-hidden="true">✦</span><span>Dares</span></button>
-      <button class="nav-button nav-camera" type="button" data-open-post aria-label="Take a photo">＋</button>
-      <button class="nav-button" type="button" data-view-target="feed"><span class="nav-icon" aria-hidden="true">▦</span><span>Feed</span></button>
-      <button class="nav-button" type="button" data-view-target="me"><span class="nav-icon" aria-hidden="true">☺</span><span>Me</span></button>
-    </nav>
-  </div>
-
-  <div class="modal" id="dare-modal" role="dialog" aria-modal="true" aria-labelledby="dare-modal-title" aria-hidden="true">
-    <div class="modal-panel">
-      <div class="modal-heading"><div><h2 id="dare-modal-title">Give a kind dare</h2><p>Invite someone into a small moment. They can always accept, swap, or skip.</p></div><button class="close-button" type="button" data-close-modal aria-label="Close">×</button></div>
-      <form id="dare-form">
-        <div class="field"><label for="dare-recipient">Who is it for?</label><input id="dare-recipient" name="recipient" maxlength="32" placeholder="@friend or @everyone" value="@everyone" required><span class="field-hint">For a direct dare, the person must have made a DareClock profile with that handle.</span></div>
-        <div class="field"><label for="dare-prompt">The dare</label><textarea id="dare-prompt-input" name="prompt" maxlength="180" placeholder="Take a photo of something unexpectedly beautiful." required></textarea></div>
-        <div class="template-row" aria-label="Safe prompt templates">
-          <button class="template" type="button" data-template="Show something that made you smile today.">Make me smile</button>
-          <button class="template" type="button" data-template="Take a photo of a colour you keep noticing.">Colour hunt</button>
-          <button class="template" type="button" data-template="Show your cosiest little corner.">Cozy corner</button>
-          <button class="template" type="button" data-template="Share one tiny act of kindness you saw.">Be kind</button>
-        </div>
-        <div class="form-row">
-          <div class="field"><label for="dare-category">Mood</label><select id="dare-category" name="category"><option value="Creative">Creative</option><option value="Kind">Kind</option><option value="Silly">Silly</option><option value="Everyday">Everyday</option></select></div>
-          <div class="field"><label for="dare-deadline">Gentle deadline</label><select id="dare-deadline" name="deadline"><option value="24">24 hours</option><option value="48">2 days</option><option value="168">This week</option></select></div>
-        </div>
-        <div class="modal-footer"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" id="send-dare-button" type="submit">Send dare</button></div>
-      </form>
+<div class="container">
+    <!-- Login / Sign Up Screen -->
+    <div id="auth-screen">
+        <h2>Welcome to the Chat</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="signIn()">Sign In</button>
+        <hr style="margin: 20px 0;">
+        <button class="google-btn" onclick="signInWithGoogle()">Sign in with Google</button>
+        <p id="auth-error" style="color: red; font-size: 0.9em;"></p>
     </div>
-  </div>
 
-  <div class="modal" id="post-modal" role="dialog" aria-modal="true" aria-labelledby="post-modal-title" aria-hidden="true">
-    <div class="modal-panel">
-      <div class="modal-heading"><div><h2 id="post-modal-title">Capture the moment</h2><p id="post-modal-description">A real photo is enough. We compress it before upload to remove camera metadata.</p></div><button class="close-button" type="button" data-close-modal aria-label="Close">×</button></div>
-      <form id="post-form">
-        <div class="photo-picker" id="photo-picker">
-          <div class="photo-picker-copy" id="photo-picker-copy"><span aria-hidden="true" style="font-size:2rem">⌁</span><strong>Add a photo</strong><span>Use your camera on mobile or choose an image from your laptop.</span><button class="button button-quiet upload-button" type="button" id="choose-photo-button">Choose photo</button></div>
+    <!-- Chat Interface -->
+    <div id="chat-screen">
+        <div class="chat-header">
+            <span>Group Chat</span>
+            <button onclick="signOut()">Log Out</button>
         </div>
-        <input class="screen-reader-only" id="photo-input" type="file" accept="image/*" capture="environment">
-        <div class="field" style="margin-top:15px"><label for="post-caption">A tiny caption <span style="color:var(--muted);font-weight:600">optional</span></label><textarea id="post-caption" maxlength="180" placeholder="What is this little moment about?"></textarea></div>
-        <div class="field"><label for="post-visibility">Share it</label><select id="post-visibility"><option value="private">Only me — private memory</option><option value="community">DareClock community — visible to signed-in members</option></select><span class="field-hint">Community photos are shareable. Do not post someone else's photo without permission.</span></div>
-        <div class="modal-footer"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" id="share-post-button" type="submit">Save moment</button></div>
-      </form>
+        <div id="messages-container"></div>
+        <div class="chat-input-area">
+            <label class="file-label" for="image-upload">📷</label>
+            <input type="file" id="image-upload" accept="image/*" onchange="sendImage()">
+            <input type="text" id="message-input" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+        </div>
     </div>
-  </div>
+</div>
 
-  <div class="modal" id="profile-modal" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" aria-hidden="true">
-    <div class="modal-panel">
-      <div class="modal-heading"><div><h2 id="profile-modal-title">Your DareClock profile</h2><p>A handle lets friends send a direct dare. Keep it simple and friendly.</p></div><button class="close-button" type="button" data-close-modal aria-label="Close">×</button></div>
-      <form id="profile-form">
-        <div class="field"><label for="profile-name-input">Display name</label><input id="profile-name-input" maxlength="28" required></div>
-        <div class="field"><label for="profile-handle-input">Your handle</label><input id="profile-handle-input" maxlength="24" pattern="@[a-z0-9_]{3,23}" placeholder="@your_handle" required><span class="field-hint">Use 3–23 lowercase letters, numbers, or underscores.</span></div>
-        <div class="modal-footer"><button class="button button-secondary" type="button" data-close-modal>Cancel</button><button class="button button-primary" type="submit">Save profile</button></div>
-      </form>
-    </div>
-  </div>
+<script>
+    // Initialize Supabase with your exact keys
+    const SUPABASE_URL = 'https://egzkmrddetiggrcvrjoq.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnemttcmRkZXRpZ2dyY3Zyam9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMzMxNDcsImV4cCI6MjEwNDkwOTE0N30.pUtxuahj42tUlOMGGSKFZ7T0UERauzdgNQOOfgBx1Ws';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    let currentUser = null;
 
-  <script type="module">
-    /* This web config is public by design. Firebase Security Rules protect data, not this key. */
-    const firebaseConfig = {
-      apiKey: "AIzaSyC30vWz5n1ngi_K6o4Z4g2YWHSBJqn4qBU",
-      authDomain: "dare-clock.firebaseapp.com",
-      projectId: "dare-clock",
-      storageBucket: "dare-clock.firebasestorage.app",
-      messagingSenderId: "572762318954",
-      appId: "1:572762318954:web:72bfdb7adb0b7300cc8213"
-    };
+    // --- Authentication Logic ---
 
-    const demoPosts = [
-      { id: "demo-sun", authorName: "Mina", authorHandle: "@mina_moves", prompt: "Show something that made you smile today.", caption: "The bakery window got me again.", createdAt: new Date(Date.now() - 42 * 60 * 1000), art: "coral", emoji: "🥐" },
-      { id: "demo-green", authorName: "Joel", authorHandle: "@joelnotes", prompt: "Take a photo of a colour you keep noticing.", caption: "Apparently it is this exact shade of green.", createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), art: "mint", emoji: "🌿" },
-      { id: "demo-desk", authorName: "Aya", authorHandle: "@aya_here", prompt: "Show your cosiest little corner.", caption: "Five quiet minutes before the group chat wakes up.", createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), art: "lilac", emoji: "☕" }
-    ];
-
-    const demoIncoming = [
-      { id: "demo-dare-1", senderId: "demo", senderHandle: "@mina_moves", recipientId: "demo", recipientHandle: "@you", prompt: "Show us a colour you keep noticing.", category: "Creative", status: "open", createdAt: new Date(Date.now() - 18 * 60 * 1000), expiresAt: new Date(Date.now() + 22 * 60 * 60 * 1000) },
-      { id: "demo-dare-2", senderId: "demo", senderHandle: "@joelnotes", recipientId: "everyone", recipientHandle: "@everyone", prompt: "Share one tiny act of kindness you saw today.", category: "Kind", status: "open", createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), expiresAt: new Date(Date.now() + 46 * 60 * 60 * 1000) }
-    ];
-
-    const dailyPrompts = [
-      "Show the tiny thing making today better.",
-      "Take a photo of a colour you keep noticing.",
-      "Show your cosiest little corner.",
-      "Find a shape that looks like something else.",
-      "Share one tiny act of kindness you saw.",
-      "Photograph the view from where you are right now.",
-      "Show something that made you pause today."
-    ];
-    const safeAlternatives = [
-      "Show one soft thing in your day.",
-      "Find a little bit of sunlight.",
-      "Take a photo of something that feels like home.",
-      "Show the best texture near you.",
-      "Share a detail most people would miss."
-    ];
-    const unsafeDarePattern = /\b(hurt\s*(yourself|someone)|self\s*harm|suicide|nude|naked|sexual|weapon|steal|illegal|drugs?|alcohol|dangerous|humiliate|bully)\b/i;
-    const localStorageKey = "dare-clock-single-file-v1";
-    const unsubs = [];
-    const privatePreviewUrls = new Map();
-
-    let app;
-    let auth;
-    let db;
-    let storage;
-    let initializeApp;
-    let getAuth;
-    let onAuthStateChanged;
-    let signInAnonymously;
-    let getFirestore;
-    let collection;
-    let doc;
-    let getDoc;
-    let getDocs;
-    let setDoc;
-    let addDoc;
-    let updateDoc;
-    let query;
-    let where;
-    let limit;
-    let onSnapshot;
-    let serverTimestamp;
-    let orderBy;
-    let runTransaction;
-    let ref;
-    let uploadString;
-    let getDownloadURL;
-    let getBlob;
-    let selectedPhoto = null;
-    let postForDare = null;
-    let currentDailyIndex = new Date().getDate() % dailyPrompts.length;
-    let toastTimeout;
-    const state = {
-      remote: false,
-      authUser: null,
-      profile: { displayName: "You", handle: "@your_day" },
-      publicPosts: [],
-      privateMemories: [],
-      incomingDares: [],
-      sentDares: [],
-      communityResponses: {},
-      hiddenPostIds: [],
-      localOnly: true
-    };
-
-    const $ = (selector, scope = document) => scope.querySelector(selector);
-    const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
-
-    function escapeHtml(value = "") {
-      return String(value).replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
-    }
-
-    function asDate(value) {
-      if (!value) return new Date();
-      if (typeof value.toDate === "function") return value.toDate();
-      return value instanceof Date ? value : new Date(value);
-    }
-
-    function timeAgo(value) {
-      const seconds = Math.max(0, Math.round((Date.now() - asDate(value).getTime()) / 1000));
-      if (seconds < 60) return "now";
-      if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-      return `${Math.floor(seconds / 86400)}d`;
-    }
-
-    function timeLeft(value) {
-      const minutes = Math.max(0, Math.round((asDate(value).getTime() - Date.now()) / 60000));
-      if (minutes < 60) return `${minutes}m left`;
-      if (minutes < 1440) return `${Math.floor(minutes / 60)}h left`;
-      return `${Math.ceil(minutes / 1440)}d left`;
-    }
-
-    function initial(value) { return (value || "Y").trim().charAt(0).toUpperCase() || "Y"; }
-
-    function normaliseHandle(value) {
-      const handle = value.trim().toLowerCase().replace(/^@*/, "").replace(/[^a-z0-9_]/g, "");
-      return handle ? `@${handle}` : "";
-    }
-
-    function isSafePrompt(value) { return !unsafeDarePattern.test(value); }
-
-    function showToast(message, isError = false) {
-      const toast = $("#toast");
-      toast.textContent = message;
-      toast.classList.toggle("is-error", isError);
-      toast.classList.add("is-visible");
-      clearTimeout(toastTimeout);
-      toastTimeout = window.setTimeout(() => toast.classList.remove("is-visible"), 4200);
-    }
-
-    function setSyncStatus(label, live = false) {
-      $("#sync-label").textContent = label;
-      $("#sync-status").classList.toggle("is-live", live);
-    }
-
-    function getLocalState() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(localStorageKey) || "{}");
-        if (saved.profile) state.profile = { ...state.profile, ...saved.profile };
-        state.publicPosts = Array.isArray(saved.publicPosts) ? saved.publicPosts : [];
-        state.privateMemories = Array.isArray(saved.privateMemories) ? saved.privateMemories : [];
-        state.incomingDares = Array.isArray(saved.incomingDares) ? saved.incomingDares : [];
-        state.sentDares = Array.isArray(saved.sentDares) ? saved.sentDares : [];
-        state.communityResponses = saved.communityResponses && typeof saved.communityResponses === "object" ? saved.communityResponses : {};
-        state.hiddenPostIds = Array.isArray(saved.hiddenPostIds) ? saved.hiddenPostIds : [];
-      } catch { /* A blocked localStorage simply starts a fresh demo. */ }
-    }
-
-    function saveLocalState() {
-      try {
-        const existing = JSON.parse(localStorage.getItem(localStorageKey) || "{}");
-        const values = state.remote ? { ...existing, hiddenPostIds: state.hiddenPostIds, communityResponses: state.communityResponses } : {
-          profile: state.profile,
-          publicPosts: state.publicPosts,
-          privateMemories: state.privateMemories,
-          incomingDares: state.incomingDares,
-          sentDares: state.sentDares,
-          communityResponses: state.communityResponses,
-          hiddenPostIds: state.hiddenPostIds
-        };
-        localStorage.setItem(localStorageKey, JSON.stringify(values));
-      } catch {
-        showToast("That image is too large to keep in this browser. Turn on Firebase Storage to save it online.", true);
-      }
-    }
-
-    function renderDateAndDailyPrompt() {
-      const now = new Date();
-      $("#date-label").textContent = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-      $("#daily-prompt").textContent = dailyPrompts[currentDailyIndex];
-      updateCountdown();
-    }
-
-    function updateCountdown() {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setHours(24, 0, 0, 0);
-      const minutes = Math.max(0, Math.round((tomorrow - now) / 60000));
-      $("#countdown").textContent = `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-    }
-
-    function renderProfile() {
-      const { displayName, handle } = state.profile;
-      $("#welcome-name").textContent = displayName.split(" ")[0] || "friend";
-      $("#avatar-button").textContent = initial(displayName);
-      $("#profile-avatar").textContent = initial(displayName);
-      $("#profile-name").textContent = displayName;
-      $("#profile-handle").textContent = handle;
-      const allPosts = [...state.publicPosts, ...state.privateMemories];
-      $("#stat-posts").textContent = allPosts.length;
-      $("#stat-dares").textContent = state.sentDares.length;
-      $("#profile-name-input").value = displayName;
-      $("#profile-handle-input").value = handle;
-    }
-
-    function isUnexpired(dare) { return asDate(dare.expiresAt).getTime() > Date.now(); }
-    function responseForCommunityDare(dare) { return state.communityResponses[dare.id] || null; }
-    function activeDares() {
-      return state.incomingDares.filter(dare => (dare.status === "open" || dare.status === "accepted") && isUnexpired(dare));
-    }
-    function readableDareCount() {
-      return activeDares().filter(dare => {
-        const status = dare.recipientId === "everyone" ? responseForCommunityDare(dare)?.status : dare.status;
-        return status !== "complete" && status !== "skipped";
-      }).length;
-    }
-
-    function renderActivity() {
-      const activities = activeDares().filter(dare => {
-        const status = dare.recipientId === "everyone" ? responseForCommunityDare(dare)?.status : dare.status;
-        return status !== "complete" && status !== "skipped";
-      }).slice(0, 3);
-      const fallback = [
-        { icon: "✦", title: "A kind photo dare is waiting", text: "Take it, swap it, or skip it — your call.", time: "now" },
-        { icon: "⌁", title: "Your private shelf is ready", text: "Save a real little moment without sharing it.", time: "today" }
-      ];
-      const items = activities.length ? activities.map(dare => ({ icon: dare.category === "Kind" ? "♡" : "✦", title: `${dare.senderHandle || "Someone"} dared you`, text: dare.prompt, time: timeAgo(dare.createdAt) })) : fallback;
-      $("#activity-list").innerHTML = items.map(item => `<article class="activity-item"><span class="activity-icon" aria-hidden="true">${item.icon}</span><div><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.text)}</p></div><span class="activity-time">${escapeHtml(item.time)}</span></article>`).join("");
-    }
-
-    function dareCard(dare, isCommunity = false) {
-      const response = isCommunity ? responseForCommunityDare(dare) : null;
-      const viewDare = response ? { ...dare, ...response } : dare;
-      const status = viewDare.status || "open";
-      const escapedPrompt = escapeHtml(viewDare.prompt || "A gentle photo moment.");
-      const sender = escapeHtml(dare.senderHandle || dare.creatorHandle || "@dare_clock");
-      const category = escapeHtml(dare.category || "Everyday");
-      const completed = status === "complete";
-      const skipped = status === "skipped";
-      const isMine = !isCommunity && (dare.senderId === state.authUser?.uid || dare.localOwner === "sent");
-      let footer = "";
-      if (completed) footer = `<span class="tag complete">✓ completed</span><span class="handle">${sender}</span>`;
-      else if (skipped) footer = `<span class="tag">skipped</span><span class="handle">${sender}</span>`;
-      else if (isMine) footer = `<span class="handle">Sent to ${escapeHtml(dare.recipientHandle || "@everyone")}</span><span class="tag">${timeLeft(dare.expiresAt)}</span>`;
-      else footer = `<span class="handle">from ${sender}</span><div class="actions-inline"><button class="button button-quiet small" type="button" data-dare-action="swap" data-dare-id="${escapeHtml(dare.id)}">Swap</button><button class="button button-secondary small" type="button" data-dare-action="skip" data-dare-id="${escapeHtml(dare.id)}">Skip</button><button class="button button-primary small" type="button" data-dare-action="accept" data-dare-id="${escapeHtml(dare.id)}">${status === "accepted" ? "Finish" : "Accept"}</button></div>`;
-      return `<article class="dare-item${isCommunity ? " is-community" : ""}"><div class="dare-top"><span class="tag${isCommunity ? " community" : ""}">${isCommunity ? "community" : category}</span><span class="activity-time">${timeLeft(dare.expiresAt)}</span></div><h3>${escapedPrompt}</h3><p>${isCommunity ? "A friendly challenge for anyone who wants in." : "No pressure: a safe alternative or a skip is always okay."}</p><div class="dare-footer">${footer}</div></article>`;
-    }
-
-    function renderDares() {
-      const personal = activeDares().filter(dare => dare.recipientId !== "everyone");
-      const community = activeDares().filter(dare => dare.recipientId === "everyone");
-      const sent = state.sentDares.filter(dare => dare.status !== "expired" && isUnexpired(dare));
-      $("#dare-count").textContent = `${readableDareCount()} waiting`;
-      $("#personal-dares").innerHTML = personal.length || sent.length ? [...personal, ...sent].map(dare => dareCard(dare)).join("") : `<div class="empty-state"><div class="empty-icon">✦</div><h3>Nothing landing here yet.</h3><p>Ask a friend for their handle or make the first gentle dare.</p><button class="button button-quiet small" type="button" data-open-dare>Give a dare</button></div>`;
-      $("#community-dares").innerHTML = community.length ? community.map(dare => dareCard(dare, true)).join("") : `<div class="empty-state"><div class="empty-icon">☀</div><h3>Fresh community ideas soon.</h3><p>Start a safe challenge for everyone.</p></div>`;
-    }
-
-    function postCard(post) {
-      const image = post.imageUrl || post.photoUrl;
-      const visual = image ? `<img class="post-image" src="${escapeHtml(image)}" alt="Photo shared by ${escapeHtml(post.authorName || "a DareClock member")}">` : `<div class="photo-art ${escapeHtml(post.art || "lilac")}" aria-label="Illustrative demo photo">${escapeHtml(post.emoji || "✦")}</div>`;
-      const displayName = post.authorName || post.authorHandle || "DareClock member";
-      return `<article class="post-card" data-post-id="${escapeHtml(post.id)}">${visual}<div class="post-body"><div class="post-author"><span class="micro-avatar">${escapeHtml(initial(displayName))}</span><strong>${escapeHtml(displayName)}</strong><time>${timeAgo(post.createdAt)}</time></div><p class="post-dare">✦ ${escapeHtml(post.prompt || "A real little moment")}</p><p class="post-caption">${escapeHtml(post.caption || "No caption — just a moment.")}</p><div class="post-actions"><button class="reaction-button" type="button" data-react="heart">♡ kind</button><button class="reaction-button" type="button" data-react="spark">✦ real</button><button class="link-button" type="button" data-report="${escapeHtml(post.id)}">Hide</button></div></div></article>`;
-    }
-
-    function renderFeed() {
-      const shownPosts = (state.publicPosts.length ? state.publicPosts : demoPosts).filter(post => !state.hiddenPostIds.includes(post.id));
-      $("#feed-grid").innerHTML = shownPosts.length ? shownPosts.map(postCard).join("") : `<div class="empty-state"><div class="empty-icon">⌁</div><h3>Your feed is clear.</h3><p>Share the first community moment when it feels right.</p></div>`;
-    }
-
-    function renderMemories() {
-      const own = state.privateMemories.slice(0, 9);
-      const sample = own.length ? own : [
-        { id: "memory-1", art: "☀" }, { id: "memory-2", art: "🌿" }, { id: "memory-3", art: "✦" }
-      ];
-      $("#memory-grid").innerHTML = sample.map(memory => memory.imageUrl ? `<div class="memory"><img src="${escapeHtml(memory.imageUrl)}" alt="Your private memory"></div>` : `<div class="memory art">${escapeHtml(memory.art || "⌁")}</div>`).join("");
-    }
-
-    function renderAll() {
-      renderDateAndDailyPrompt();
-      renderProfile();
-      renderActivity();
-      renderDares();
-      renderFeed();
-      renderMemories();
-    }
-
-    function switchView(target) {
-      $$(".view").forEach(view => view.classList.toggle("is-active", view.id === `${target}-view`));
-      $$("[data-view-target]").forEach(button => button.classList.toggle("is-active", button.dataset.viewTarget === target));
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function openModal(id) {
-      const modal = $(`#${id}`);
-      modal.classList.add("is-open");
-      modal.setAttribute("aria-hidden", "false");
-      const focusable = modal.querySelector("input, textarea, select, button");
-      window.setTimeout(() => focusable?.focus(), 30);
-    }
-
-    function closeModal(modal) {
-      modal.classList.remove("is-open");
-      modal.setAttribute("aria-hidden", "true");
-      if (modal.id === "post-modal") {
-        $("#post-form").reset();
-        resetPhotoPicker();
-        postForDare = null;
-      }
-    }
-
-    function closeAllModals() { $$(".modal.is-open").forEach(closeModal); }
-
-    function openDareModal() { openModal("dare-modal"); }
-
-    function openPostModal(dare = null) {
-      postForDare = dare;
-      $("#post-modal-title").textContent = dare ? "Complete this dare" : "Capture the moment";
-      $("#post-modal-description").textContent = dare ? `Your photo answer: “${dare.prompt}”` : "A real photo is enough. We compress it before upload to remove camera metadata.";
-      openModal("post-modal");
-    }
-
-    function openProfileModal() { openModal("profile-modal"); }
-
-    function emptyPhotoPickerMarkup() {
-      return `<div class="photo-picker-copy" id="photo-picker-copy"><span aria-hidden="true" style="font-size:2rem">⌁</span><strong>Add a photo</strong><span>Use your camera on mobile or choose an image from your laptop.</span><button class="button button-quiet upload-button" type="button" id="choose-photo-button">Choose photo</button></div>`;
-    }
-
-    function resetPhotoPicker() {
-      selectedPhoto = null;
-      $("#photo-input").value = "";
-      $("#photo-picker").classList.remove("has-photo");
-      $("#photo-picker").innerHTML = emptyPhotoPickerMarkup();
-    }
-
-    async function resizeImage(file) {
-      if (!file || !file.type.startsWith("image/")) throw new Error("Please choose an image file.");
-      if (file.size > 14 * 1024 * 1024) throw new Error("Choose an image smaller than 14 MB.");
-      const sourceUrl = URL.createObjectURL(file);
-      try {
-        const image = await new Promise((resolve, reject) => {
-          const element = new Image();
-          element.onload = () => resolve(element);
-          element.onerror = () => reject(new Error("That image could not be opened."));
-          element.src = sourceUrl;
-        });
-        const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
-        const scale = Math.min(1, 1600 / longestSide);
-        const width = Math.max(1, Math.round(image.naturalWidth * scale));
-        const height = Math.max(1, Math.round(image.naturalHeight * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d", { alpha: false });
-        context.drawImage(image, 0, 0, width, height);
-        return canvas.toDataURL("image/jpeg", .84);
-      } finally {
-        URL.revokeObjectURL(sourceUrl);
-      }
-    }
-
-    async function choosePhoto(file) {
-      try {
-        const dataUrl = await resizeImage(file);
-        selectedPhoto = { dataUrl, fileName: file.name || "moment.jpg" };
-        $("#photo-picker").classList.add("has-photo");
-        $("#photo-picker").innerHTML = `<img src="${dataUrl}" alt="Selected photo preview">`;
-      } catch (error) {
-        showToast(error.message || "We could not prepare that photo.", true);
-      }
-    }
-
-    function recordLocalDare(dare) {
-      if (dare.senderId === "local-user") state.sentDares.unshift({ ...dare, localOwner: "sent" });
-      else state.incomingDares.unshift(dare);
-      saveLocalState();
-    }
-
-    async function resolveRecipient(handle) {
-      if (handle === "@everyone") return { id: "everyone", handle: "@everyone" };
-      if (!state.remote) return { id: `local-${handle.slice(1)}`, handle };
-      const handleSnapshot = await getDoc(doc(db, "handles", handle.slice(1)));
-      if (!handleSnapshot.exists()) throw new Error(`${handle} has not made a DareClock profile yet.`);
-      return { id: handleSnapshot.data().uid, handle };
-    }
-
-    async function submitDare(event) {
-      event.preventDefault();
-      const form = new FormData(event.currentTarget);
-      const handle = normaliseHandle(form.get("recipient"));
-      const prompt = String(form.get("prompt") || "").trim();
-      const hours = Number(form.get("deadline"));
-      if (!handle || !/^@[a-z0-9_]{3,23}$/.test(handle)) return showToast("Use @everyone or a valid friend handle.", true);
-      if (prompt.length < 8) return showToast("Make the dare a little more specific.", true);
-      if (!isSafePrompt(prompt)) return showToast("That dare does not fit DareClock’s safety rules. Try a kind, creative photo prompt.", true);
-      const sendButton = $("#send-dare-button");
-      sendButton.disabled = true;
-      sendButton.textContent = "Sending…";
-      try {
-        const recipient = await resolveRecipient(handle);
-        const dare = {
-          senderId: state.authUser?.uid || "local-user",
-          senderHandle: state.profile.handle,
-          recipientId: recipient.id,
-          recipientHandle: recipient.handle,
-          prompt,
-          category: String(form.get("category")),
-          status: "open",
-          createdAt: new Date(),
-          expiresAt: new Date(Date.now() + hours * 60 * 60 * 1000)
-        };
-        if (state.remote) {
-          const document = await addDoc(collection(db, "dares"), { ...dare, createdAt: serverTimestamp() });
-          state.sentDares.unshift({ ...dare, id: document.id, localOwner: "sent" });
+    // Automatically check if the device is already logged in
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            currentUser = session.user;
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+            loadMessages();
+            subscribeToRealtime();
         } else {
-          dare.id = `local-dare-${Date.now()}`;
-          recordLocalDare(dare);
+            currentUser = null;
+            document.getElementById('auth-screen').style.display = 'block';
+            document.getElementById('chat-screen').style.display = 'none';
         }
-        closeAllModals();
-        event.currentTarget.reset();
-        $("#dare-recipient").value = "@everyone";
-        renderAll();
-        showToast(handle === "@everyone" ? "Your community dare is live." : `Dare sent to ${handle}.`);
-      } catch (error) {
-        showToast(error.message || "We could not send that dare.", true);
-      } finally {
-        sendButton.disabled = false;
-        sendButton.textContent = "Send dare";
-      }
+    });
+
+    async function signUp() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { error } = await supabase.auth.signUp({ email, password });
+        if (error) document.getElementById('auth-error').innerText = error.message;
+        else alert('Success! You can now sign in (check your email to verify if required).');
     }
 
-    function locateDare(id) {
-      return [...state.incomingDares, ...state.sentDares].find(dare => dare.id === id);
+    async function signIn() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) document.getElementById('auth-error').innerText = error.message;
     }
 
-    async function updateDare(id, updates) {
-      const dare = locateDare(id);
-      if (!dare) return;
-      if (dare.recipientId === "everyone") return updateCommunityResponse(dare, updates);
-      Object.assign(dare, updates);
-      if (state.remote && !id.startsWith("demo-") && !id.startsWith("local-")) await updateDoc(doc(db, "dares", id), updates);
-      saveLocalState();
-      renderAll();
+    async function signInWithGoogle() {
+        const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+        if (error) document.getElementById('auth-error').innerText = error.message;
     }
 
-    async function updateCommunityResponse(dare, updates) {
-      const current = responseForCommunityDare(dare) || {};
-      const response = { ...current, ...updates, dareId: dare.id, updatedAt: new Date() };
-      state.communityResponses[dare.id] = response;
-      if (state.remote && !dare.id.startsWith("demo-") && !dare.id.startsWith("local-")) {
-        await setDoc(doc(db, "users", state.authUser.uid, "responses", dare.id), {
-          ...response,
-          updatedAt: serverTimestamp()
-        }, { merge: true });
-      }
-      saveLocalState();
-      renderAll();
-      return response;
+    async function signOut() {
+        await supabase.auth.signOut();
     }
 
-    async function handleDareAction(action, id) {
-      const dare = locateDare(id);
-      if (!dare) return;
-      if (!isUnexpired(dare)) return showToast("That dare has expired. A fresh one is waiting soon.", true);
-      try {
-        const isCommunity = dare.recipientId === "everyone";
-        const currentResponse = isCommunity ? responseForCommunityDare(dare) : null;
-        if (action === "accept") {
-          const updates = { status: "accepted" };
-          if (isCommunity) updates.prompt = currentResponse?.prompt || dare.prompt;
-          const response = dare.status !== "accepted" || currentResponse?.status !== "accepted" ? await updateDare(id, updates) : currentResponse;
-          openPostModal(isCommunity ? { ...dare, ...response } : dare);
-          return;
+    // --- Chat & Realtime Logic ---
+
+    const messagesContainer = document.getElementById('messages-container');
+
+    async function loadMessages() {
+        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+        if (data) {
+            messagesContainer.innerHTML = '';
+            data.forEach(displayMessage);
+            scrollToBottom();
         }
-        if (action === "swap") {
-          const options = safeAlternatives.filter(option => option !== dare.prompt);
-          const prompt = options[Math.floor(Math.random() * options.length)];
-          await updateDare(id, { prompt, swappedAt: new Date(), status: isCommunity ? "open" : dare.status });
-          showToast("Swapped for a softer prompt. No penalty, ever.");
-        }
-        if (action === "skip") {
-          await updateDare(id, { status: "skipped", skippedAt: new Date() });
-          showToast("Skipped — no explanation needed.");
-        }
-      } catch (error) {
-        showToast(error.message || "We could not update that dare.", true);
-      }
     }
 
-    async function uploadPhoto(dataUrl, visibility) {
-      const userId = state.authUser?.uid;
-      if (!userId) throw new Error("Sign in did not finish. Please try again.");
-      const folder = visibility === "community" ? "publicPosts" : "privateMemories";
-      const path = `${folder}/${userId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
-      const imageRef = ref(storage, path);
-      await uploadString(imageRef, dataUrl, "data_url");
-      return visibility === "community" ? { storagePath: path, imageUrl: await getDownloadURL(imageRef) } : { storagePath: path };
+    // Listen for new messages sent by other devices
+    function subscribeToRealtime() {
+        supabase.channel('public:messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                displayMessage(payload.new);
+                scrollToBottom();
+            })
+            .subscribe();
     }
 
-    async function submitPost(event) {
-      event.preventDefault();
-      if (!selectedPhoto) return showToast("Choose a photo first.", true);
-      const caption = $("#post-caption").value.trim();
-      if (!isSafePrompt(caption)) return showToast("Please keep captions safe and kind.", true);
-      if (postForDare && !isUnexpired(postForDare)) return showToast("That dare has expired, so it cannot be completed now.", true);
-      const visibility = $("#post-visibility").value;
-      const shareButton = $("#share-post-button");
-      shareButton.disabled = true;
-      shareButton.textContent = state.remote ? "Saving…" : "Saving here…";
-      try {
-        const post = {
-          authorId: state.authUser?.uid || "local-user",
-          authorName: state.profile.displayName,
-          authorHandle: state.profile.handle,
-          prompt: postForDare?.prompt || dailyPrompts[currentDailyIndex],
-          dareId: postForDare?.id || null,
-          caption,
-          visibility,
-          createdAt: new Date()
-        };
-        if (state.remote) {
-          const uploadedImage = await uploadPhoto(selectedPhoto.dataUrl, visibility);
-          post.storagePath = uploadedImage.storagePath;
-          post.imageUrl = uploadedImage.imageUrl || selectedPhoto.dataUrl;
-          const target = visibility === "community" ? collection(db, "posts") : collection(db, "users", state.authUser.uid, "memories");
-          const persistentPost = { ...post, createdAt: serverTimestamp() };
-          if (visibility !== "community") delete persistentPost.imageUrl;
-          const saved = await addDoc(target, persistentPost);
-          post.id = saved.id;
-          if (visibility === "community") state.publicPosts.unshift(post);
-          else state.privateMemories.unshift(post);
-        } else {
-          post.id = `local-post-${Date.now()}`;
-          post.imageUrl = selectedPhoto.dataUrl;
-          if (visibility === "community") state.publicPosts.unshift(post);
-          else state.privateMemories.unshift(post);
-          saveLocalState();
-        }
-        if (postForDare) await updateDare(postForDare.id, { status: "complete", completedAt: new Date() });
-        const wasPublic = visibility === "community";
-        closeAllModals();
-        event.currentTarget.reset();
-        resetPhotoPicker();
-        postForDare = null;
-        renderAll();
-        showToast(wasPublic ? "Your community moment is live." : "Saved to your private shelf.");
-        if (wasPublic) switchView("feed");
-      } catch (error) {
-        showToast(error.message || "We could not save that photo. Check Firebase Storage and try again.", true);
-      } finally {
-        shareButton.disabled = false;
-        shareButton.textContent = "Save moment";
-      }
-    }
+    async function sendMessage() {
+        const input = document.getElementById('message-input');
+        const text = input.value.trim();
+        if (!text) return;
+        input.value = '';
 
-    async function submitProfile(event) {
-      event.preventDefault();
-      const displayName = $("#profile-name-input").value.trim();
-      const handle = normaliseHandle($("#profile-handle-input").value);
-      if (displayName.length < 2) return showToast("Add a display name with at least two letters.", true);
-      if (!/^@[a-z0-9_]{3,23}$/.test(handle)) return showToast("Your handle needs 3–23 lowercase letters, numbers, or underscores.", true);
-      try {
-        if (state.remote) {
-          const userId = state.authUser.uid;
-          const nextHandleRef = doc(db, "handles", handle.slice(1));
-          const previousHandleRef = doc(db, "handles", state.profile.handle.slice(1));
-          await runTransaction(db, async transaction => {
-            const nextHandle = await transaction.get(nextHandleRef);
-            const previousHandle = handle !== state.profile.handle ? await transaction.get(previousHandleRef) : null;
-            if (nextHandle.exists() && nextHandle.data().uid !== userId) throw new Error("That handle is already taken. Try another one.");
-            transaction.set(nextHandleRef, { uid: userId, handle, updatedAt: serverTimestamp() });
-            transaction.set(doc(db, "users", userId), { displayName, handle, updatedAt: serverTimestamp() }, { merge: true });
-            if (previousHandle?.exists() && previousHandle.data().uid === userId) transaction.delete(previousHandleRef);
-          });
-        }
-        state.profile = { displayName, handle };
-        saveLocalState();
-        closeAllModals();
-        renderAll();
-        showToast("Profile updated.");
-      } catch (error) {
-        showToast(error.message || "We could not save that profile.", true);
-      }
-    }
-
-    function hidePost(id) {
-      state.hiddenPostIds.push(id);
-      saveLocalState();
-      renderFeed();
-      showToast("Hidden from your feed. Thanks for looking after your space.");
-    }
-
-    function react(button) {
-      if (button.dataset.reacted) return;
-      button.dataset.reacted = "true";
-      button.textContent = button.dataset.react === "heart" ? "♥ kind" : "✦ real";
-      button.style.background = "var(--lilac)";
-    }
-
-    async function loadProfile(user) {
-      const profileRef = doc(db, "users", user.uid);
-      const profileSnapshot = await getDoc(profileRef);
-      const defaultProfile = { displayName: "New player", handle: `@dare_${user.uid.slice(0, 6).toLowerCase()}` };
-      state.profile = profileSnapshot.exists() ? { ...defaultProfile, ...profileSnapshot.data() } : defaultProfile;
-      const handleRef = doc(db, "handles", state.profile.handle.slice(1));
-      await runTransaction(db, async transaction => {
-        const handleSnapshot = await transaction.get(handleRef);
-        if (handleSnapshot.exists() && handleSnapshot.data().uid !== user.uid) throw new Error("This profile handle belongs to another account.");
-        transaction.set(handleRef, { uid: user.uid, handle: state.profile.handle, updatedAt: serverTimestamp() });
-        if (profileSnapshot.exists()) transaction.set(profileRef, { updatedAt: serverTimestamp() }, { merge: true });
-        else transaction.set(profileRef, { ...defaultProfile, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-      });
-    }
-
-    function snapshotRecords(snapshot) {
-      return snapshot.docs.map(document => ({ id: document.id, ...document.data() })).sort((a, b) => asDate(b.createdAt) - asDate(a.createdAt));
-    }
-
-    async function hydratePrivatePreviews(memories) {
-      const activePaths = new Set(memories.map(memory => memory.storagePath).filter(Boolean));
-      for (const [path, objectUrl] of privatePreviewUrls) {
-        if (!activePaths.has(path)) {
-          URL.revokeObjectURL(objectUrl);
-          privatePreviewUrls.delete(path);
-        }
-      }
-      await Promise.all(memories.map(async memory => {
-        if (!memory.storagePath) return;
-        try {
-          const existingUrl = privatePreviewUrls.get(memory.storagePath);
-          memory.imageUrl = existingUrl || URL.createObjectURL(await getBlob(ref(storage, memory.storagePath)));
-          if (!existingUrl) privatePreviewUrls.set(memory.storagePath, memory.imageUrl);
-        } catch {
-          memory.art = "🔒";
-        }
-      }));
-      renderMemories();
-    }
-
-    function startLiveListeners() {
-      while (unsubs.length) unsubs.pop()();
-      const uid = state.authUser.uid;
-      unsubs.push(onSnapshot(query(collection(db, "posts"), where("visibility", "==", "community"), orderBy("createdAt", "desc"), limit(24)), snapshot => {
-        state.publicPosts = snapshotRecords(snapshot);
-        renderAll();
-      }, error => showToast(`Community feed could not sync: ${error.message}`, true)));
-      unsubs.push(onSnapshot(query(collection(db, "users", uid, "memories"), orderBy("createdAt", "desc"), limit(24)), snapshot => {
-        state.privateMemories = snapshotRecords(snapshot);
-        renderAll();
-        hydratePrivatePreviews(state.privateMemories);
-      }, error => showToast(`Private shelf could not sync: ${error.message}`, true)));
-      unsubs.push(onSnapshot(query(collection(db, "dares"), where("recipientId", "in", [uid, "everyone"]), orderBy("createdAt", "desc"), limit(30)), snapshot => {
-        state.incomingDares = snapshotRecords(snapshot);
-        renderAll();
-      }, error => showToast(`Dares could not sync: ${error.message}`, true)));
-      unsubs.push(onSnapshot(query(collection(db, "dares"), where("senderId", "==", uid), orderBy("createdAt", "desc"), limit(30)), snapshot => {
-        state.sentDares = snapshotRecords(snapshot).map(dare => ({ ...dare, localOwner: "sent" }));
-        renderAll();
-      }, error => showToast(`Sent dares could not sync: ${error.message}`, true)));
-      unsubs.push(onSnapshot(query(collection(db, "users", uid, "responses"), orderBy("updatedAt", "desc"), limit(30)), snapshot => {
-        state.communityResponses = Object.fromEntries(snapshot.docs.map(response => [response.id, response.data()]));
-        renderAll();
-      }, error => showToast(`Community responses could not sync: ${error.message}`, true)));
-    }
-
-    async function activateFirebaseUser(user) {
-      try {
-        state.authUser = user;
-        await loadProfile(user);
-        state.remote = true;
-        state.localOnly = false;
-        setSyncStatus("Firebase live", true);
-        startLiveListeners();
-        renderAll();
-      } catch (error) {
-        state.remote = false;
-        state.localOnly = true;
-        setSyncStatus("Demo mode", false);
-        renderAll();
-        showToast("Firebase needs Firestore, Storage, and Anonymous Auth enabled. The app is saving a local demo for now.", true);
-      }
-    }
-
-    async function startFirebase() {
-      try {
-        const [appSdk, authSdk, firestoreSdk, storageSdk] = await Promise.all([
-          import("https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js"),
-          import("https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js"),
-          import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js"),
-          import("https://www.gstatic.com/firebasejs/12.18.0/firebase-storage.js")
+        await supabase.from('messages').insert([
+            { user_email: currentUser.email, text_content: text }
         ]);
-        ({ initializeApp } = appSdk);
-        ({ getAuth, onAuthStateChanged, signInAnonymously } = authSdk);
-        ({ getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, query, where, limit, onSnapshot, serverTimestamp, orderBy, runTransaction } = firestoreSdk);
-        ({ getStorage, ref, uploadString, getDownloadURL, getBlob } = storageSdk);
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        onAuthStateChanged(auth, async user => {
-          if (user) await activateFirebaseUser(user);
-          else {
-            try { await signInAnonymously(auth); }
-            catch (error) {
-              setSyncStatus("Demo mode", false);
-              showToast("Enable Anonymous Authentication in Firebase to sync photos and dares. Demo mode is ready meanwhile.", true);
-            }
-          }
-        });
-      } catch (error) {
-        setSyncStatus("Demo mode", false);
-        showToast("Firebase could not start, so this is running as a local demo.", true);
-      }
     }
 
-    document.addEventListener("click", event => {
-      const viewButton = event.target.closest("[data-view-target]");
-      if (viewButton) switchView(viewButton.dataset.viewTarget);
-      if (event.target.closest("[data-open-dare]")) openDareModal();
-      if (event.target.closest("#global-dare-button")) openDareModal();
-      if (event.target.closest("[data-open-post]")) openPostModal();
-      if (event.target.closest("#choose-photo-button")) $("#photo-input").click();
-      if (event.target.closest("#avatar-button") || event.target.closest("#edit-profile-button")) openProfileModal();
-      const template = event.target.closest("[data-template]");
-      if (template) $("#dare-prompt-input").value = template.dataset.template;
-      const dareAction = event.target.closest("[data-dare-action]");
-      if (dareAction) handleDareAction(dareAction.dataset.dareAction, dareAction.dataset.dareId);
-      const report = event.target.closest("[data-report]");
-      if (report) hidePost(report.dataset.report);
-      const reaction = event.target.closest("[data-react]");
-      if (reaction) react(reaction);
-      if (event.target.closest("[data-close-modal]")) closeAllModals();
-      if (event.target.classList.contains("modal")) closeModal(event.target);
-    });
+    // --- Image Upload Logic ---
 
-    $("#photo-input").addEventListener("change", event => choosePhoto(event.target.files?.[0]));
-    $("#dare-form").addEventListener("submit", submitDare);
-    $("#post-form").addEventListener("submit", submitPost);
-    $("#profile-form").addEventListener("submit", submitProfile);
-    $("#swap-daily").addEventListener("click", () => {
-      currentDailyIndex = (currentDailyIndex + 1) % dailyPrompts.length;
-      renderDateAndDailyPrompt();
-      showToast("New gentle prompt, same real day.");
-    });
-    document.addEventListener("keydown", event => { if (event.key === "Escape") closeAllModals(); });
+    async function sendImage() {
+        const fileInput = document.getElementById('image-upload');
+        const file = fileInput.files[0];
+        if (!file) return;
 
-    getLocalState();
-    if (!state.incomingDares.length) state.incomingDares = demoIncoming.map(dare => ({ ...dare, recipientHandle: state.profile.handle }));
-    renderAll();
-    setSyncStatus("Connecting…", false);
-    startFirebase();
-    window.setInterval(updateCountdown, 30000);
-  </script>
+        // Generate a unique file name
+        const filePath = `${Date.now()}_${file.name}`;
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage.from('chat_images').upload(filePath, file);
+        
+        if (uploadError) {
+            alert('Error uploading image: ' + uploadError.message);
+            return;
+        }
+
+        // Get the public URL of the uploaded image
+        const { data: urlData } = supabase.storage.from('chat_images').getPublicUrl(filePath);
+        
+        // Save the image URL as a message in the database
+        await supabase.from('messages').insert([
+            { user_email: currentUser.email, image_url: urlData.publicUrl }
+        ]);
+
+        fileInput.value = ''; // Reset input
+    }
+
+    // --- UI Helpers ---
+
+    function displayMessage(msg) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        
+        let contentHtml = `<small>${msg.user_email}</small>`;
+        if (msg.text_content) contentHtml += `<div>${msg.text_content}</div>`;
+        if (msg.image_url) contentHtml += `<img src="${msg.image_url}" alt="Chat Image">`;
+        
+        msgDiv.innerHTML = contentHtml;
+        messagesContainer.appendChild(msgDiv);
+    }
+
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+</script>
+
 </body>
 </html>
