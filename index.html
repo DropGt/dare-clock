@@ -3,221 +3,701 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dare Chat</title>
+    <title>Dare Chat - Dynamic Liquid Glass Experience</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* --- LIQUID GLASS UI --- */
+        /* ==========================================================================
+           1. CORE VARIABLES & LIQUID GLASS DESIGN SYSTEM
+           ================================================================---------- */
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.3);
-            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+            --glass-bg: rgba(255, 255, 255, 0.12);
+            --glass-bg-hover: rgba(255, 255, 255, 0.2);
+            --glass-bg-active: rgba(255, 255, 255, 0.28);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --glass-border-bright: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.25);
+            --glass-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
             --text-main: #ffffff;
-            --blur: blur(12px);
+            --text-muted: rgba(255, 255, 255, 0.65);
+            --blur: blur(16px);
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            --transition-bounce: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        /* Animated Gradient Background */
+        /* Global Resets */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            scrollbar-width: none; /* Hide scrollbars for ultra-clean mobile UI */
+        }
+        *::-webkit-scrollbar { display: none; }
+
+        /* Dynamic Animated Background */
         body {
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            display: flex; justify-content: center; height: 100vh; overflow: hidden; color: var(--text-main);
+            background: linear-gradient(-45deg, #f12711, #f5af19, #4facfe, #00f2fe, #b224ef, #7579ff);
+            background-size: 500% 500%;
+            animation: fluidGradientBG 20s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            color: var(--text-main);
         }
-        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        .app-container { width: 100%; max-width: 450px; height: 100%; position: relative; overflow: hidden; }
-        
-        /* Smooth Screen Transitions */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transform: scale(0.95) translateY(20px); transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); z-index: 1; }
-        .screen.active { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); z-index: 10; }
+        @keyframes fluidGradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-        /* Glass Panels */
-        .glass-panel { background: var(--glass-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: var(--glass-shadow); }
-        .glass-header { padding: 30px 20px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-        
-        /* Buttons & Inputs */
-        .input-box { width: 100%; padding: 16px 20px; border-radius: 20px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: white; outline: none; transition: 0.3s; }
-        .input-box:focus { background: rgba(0,0,0,0.4); border-color: white; transform: scale(1.02); }
-        .input-box::placeholder { color: rgba(255,255,255,0.6); }
-        
-        .btn-glass { padding: 14px 24px; border-radius: 20px; background: rgba(255,255,255,0.2); border: 1px solid var(--glass-border); color: white; font-weight: 600; cursor: pointer; backdrop-filter: var(--blur); transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-        .btn-glass:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+        /* App Wrapper */
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            max-height: 900px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 0px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-        /* Avatars */
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.5); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.2rem; object-fit: cover; }
-        
-        /* Profile Edit Section */
-        .profile-card { padding: 30px; text-align: center; margin: 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .profile-avatar-wrapper { position: relative; cursor: pointer; transition: 0.3s; }
-        .profile-avatar-wrapper:active { transform: scale(0.9); }
-        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid white; box-shadow: var(--glass-shadow); }
-        .edit-badge { position: absolute; bottom: 0; right: 0; background: #fff; color: #000; border-radius: 50%; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-size: 0.9rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        
-        .profile-field { width: 100%; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.15); padding: 15px 20px; border-radius: 15px; transition: 0.3s; }
-        .profile-field .label { font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
-        .profile-field .value { font-weight: 600; font-size: 1.1rem; flex: 1; text-align: left; margin-left: 10px; }
-        .edit-btn { background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: white; transition: 0.3s; }
-        .edit-btn:active { transform: scale(0.7) rotate(15deg); }
+        @media (min-width: 480px) {
+            .app-container {
+                height: 92vh;
+                border-radius: 36px;
+                border: 1px solid var(--glass-border);
+            }
+        }
 
-        /* Lists */
-        .scroll-area { flex: 1; overflow-y: auto; padding: 10px 20px 100px; display: flex; flex-direction: column; gap: 15px; }
-        .list-item { display: flex; align-items: center; padding: 15px; border-radius: 20px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); transition: 0.3s; animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1) backwards; }
-        .list-item:active { transform: scale(0.98); background: rgba(255,255,255,0.2); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* ==========================================================================
+           2. ANIMATED SCREENS & VIEW LAYOUTS
+           ================================================================---------- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.92) translateY(30px);
+            transition: var(--transition-bounce);
+            z-index: 1;
+        }
 
-        /* Camera & Feed */
-        #camera-screen { background: #000; }
-        #camera-feed { position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
-        .camera-overlay { position: absolute; bottom: 100px; width: 100%; display: flex; justify-content: center; }
-        .capture-btn { width: 80px; height: 80px; border-radius: 50%; border: 4px solid white; background: rgba(255,255,255,0.2); backdrop-filter: var(--blur); cursor: pointer; transition: 0.3s; }
-        .capture-btn:active { transform: scale(0.8); background: white; }
-        
-        .post-card { border-radius: 24px; overflow: hidden; padding: 15px; }
-        .post-img { width: 100%; height: 250px; border-radius: 16px; object-fit: cover; }
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1) translateY(0);
+            z-index: 10;
+        }
 
-        /* Chat Rooms */
-        #active-chat-screen { z-index: 30; transform: translateX(100%); }
-        #active-chat-screen.active { transform: translateX(0); }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 0.95rem; line-height: 1.4; animation: slideUp 0.3s ease backwards; }
-        .msg-received { background: rgba(255,255,255,0.2); backdrop-filter: var(--blur); align-self: flex-start; border-bottom-left-radius: 5px; }
-        .msg-sent { background: rgba(0, 0, 0, 0.4); backdrop-filter: var(--blur); align-self: flex-end; border-bottom-right-radius: 5px; }
-        
-        /* Bottom Nav */
-        .bottom-nav { position: absolute; bottom: 20px; left: 20px; right: 20px; padding: 15px; display: flex; justify-content: space-around; z-index: 50; }
-        .nav-item { font-size: 1.5rem; opacity: 0.5; transition: 0.3s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer; }
-        .nav-item.active { opacity: 1; transform: translateY(-8px) scale(1.2); text-shadow: 0 0 15px rgba(255,255,255,0.8); }
+        /* Glass Surface Components */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            box-shadow: var(--glass-shadow), var(--glass-inset);
+            transition: var(--transition-smooth);
+        }
+
+        .glass-panel:hover {
+            border-color: var(--glass-border-bright);
+        }
+
+        .glass-header {
+            padding: 24px 20px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .glass-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* ==========================================================================
+           3. FORM CONTROLS, INPUTS & GLASS BUTTONS
+           ================================================================---------- */
+        .input-box {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition-smooth);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .input-box:focus {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: var(--glass-border-bright);
+            transform: scale(1.01);
+            box-shadow: 0 0 20px rgba(255,255,255,0.15), inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .input-box::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-glass {
+            padding: 14px 24px;
+            border-radius: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            box-shadow: var(--glass-shadow);
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-glass:hover {
+            background: var(--glass-bg-hover);
+            border-color: var(--glass-border-bright);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn-glass:active {
+            transform: scale(0.94) translateY(0);
+            background: var(--glass-bg-active);
+        }
+
+        /* ==========================================================================
+           4. USER AVATARS & PROFILE EDITING INTERACTION
+           ================================================================---------- */
+        .avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid var(--glass-border-bright);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            object-fit: cover;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+
+        .profile-card {
+            padding: 28px;
+            text-align: center;
+            margin: 10px 20px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .profile-avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+        }
+
+        .profile-avatar-wrapper:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-avatar-wrapper:active {
+            transform: scale(0.92);
+        }
+
+        .profile-avatar-large {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .edit-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #ffffff;
+            color: #111;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: var(--transition-bounce);
+        }
+
+        .profile-avatar-wrapper:hover .edit-badge {
+            transform: scale(1.15) rotate(10deg);
+        }
+
+        .profile-field {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 14px 18px;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: var(--transition-smooth);
+        }
+
+        .profile-field:hover {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: var(--glass-border);
+        }
+
+        .profile-field .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 600;
+        }
+
+        .profile-field .value {
+            font-weight: 600;
+            font-size: 1.05rem;
+            flex: 1;
+            text-align: left;
+            margin-left: 12px;
+            word-break: break-all;
+        }
+
+        .edit-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: white;
+            padding: 6px;
+            border-radius: 50%;
+            transition: var(--transition-bounce);
+        }
+
+        .edit-btn:hover {
+            transform: scale(1.2);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .edit-btn:active {
+            transform: scale(0.8) rotate(15deg);
+        }
+
+        /* ==========================================================================
+           5. SCROLL LISTS & ANIMATED CARDS
+           ================================================================---------- */
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px 110px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 22px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            transition: var(--transition-smooth);
+            animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+        }
+
+        .list-item:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-2px);
+            border-color: var(--glass-border-bright);
+        }
+
+        .list-item:active {
+            transform: scale(0.97);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==========================================================================
+           6. CAMERA & EXPLORE FEED SCREENS
+           ================================================================---------- */
+        #camera-screen {
+            background: #000;
+        }
+
+        #camera-feed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            bottom: 110px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .capture-btn {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: var(--blur);
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .capture-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .capture-btn:active {
+            transform: scale(0.82);
+            background: white;
+        }
+
+        .post-card {
+            border-radius: 26px;
+            overflow: hidden;
+            padding: 16px;
+            animation: fadeInUp 0.5s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+        }
+
+        .post-img {
+            width: 100%;
+            height: 280px;
+            border-radius: 18px;
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        }
+
+        /* ==========================================================================
+           7. ACTIVE REAL-TIME CHAT ROOM
+           ================================================================---------- */
+        #active-chat-screen {
+            z-index: 40;
+            transform: translateX(101%);
+            background: rgba(15, 15, 25, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        #active-chat-screen.active {
+            transform: translateX(0);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg {
+            max-width: 78%;
+            padding: 14px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            animation: fadeInUp 0.3s cubic-bezier(0.25, 1, 0.5, 1) backwards;
+            word-wrap: break-word;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .msg-received {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: var(--blur);
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .msg-sent {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.6), rgba(0, 242, 254, 0.6));
+            backdrop-filter: var(--blur);
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        /* ==========================================================================
+           8. FLOATING BOTTOM NAVIGATION BAR
+           ================================================================---------- */
+        .bottom-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border-bright);
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), var(--glass-inset);
+        }
+
+        .nav-item {
+            font-size: 1.4rem;
+            opacity: 0.55;
+            transition: var(--transition-bounce);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+        }
+
+        .nav-item:hover {
+            opacity: 0.9;
+            transform: translateY(-3px);
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            transform: translateY(-8px) scale(1.25);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        /* Utility Helpers */
+        .error-msg {
+            color: #ff8b8b;
+            background: rgba(255, 0, 0, 0.15);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 14px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            display: none;
+            animation: fadeInUp 0.3s ease;
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="screen active" style="justify-content: center; padding: 40px;">
-        <div class="glass-panel" style="padding: 40px 20px; text-align: center;">
-            <h1 style="font-size: 2.5rem; margin-bottom: 10px; font-weight: 700;">Dare</h1>
-            <p style="margin-bottom: 30px; opacity: 0.8;">Connect dynamically.</p>
-            <button class="btn-glass" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;" onclick="signInWithGoogle()">
-                Continue with Google
-            </button>
+    <!-- ==========================================================
+       1. AUTH SCREEN (Email & Password Login/Signup)
+       ========================================================== -->
+    <div id="auth-screen" class="screen active" style="justify-content: center; padding: 30px;">
+        <div class="glass-panel" style="padding: 40px 25px; text-align: center;">
+            <h1 style="font-size: 3rem; margin-bottom: 8px; font-weight: 800; letter-spacing: -1px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">Dare</h1>
+            <p style="margin-bottom: 35px; color: var(--text-muted); font-size: 1.05rem;">Dynamic social connectivity.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                <input type="email" id="auth-email" class="input-box" placeholder="Email address">
+                <input type="password" id="auth-pass" class="input-box" placeholder="Password (min 6 chars)">
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="btn-glass" style="flex: 1;" onclick="handleAuth('signup')">Sign Up</button>
+                <button class="btn-glass" style="flex: 1; background: rgba(255,255,255,0.3);" onclick="handleAuth('signin')">Log In</button>
+            </div>
+            <div id="auth-error" class="error-msg"></div>
         </div>
     </div>
 
-    <!-- Camera Screen -->
+    <!-- ==========================================================
+       2. CAMERA CAPTURE SCREEN
+       ========================================================== -->
     <div id="camera-screen" class="screen">
         <video id="camera-feed" autoplay playsinline></video>
         <canvas id="camera-canvas" style="display:none;"></canvas>
-        <div class="camera-overlay"><button class="capture-btn" onclick="captureAndPost()"></button></div>
+        <div class="camera-overlay">
+            <button class="capture-btn" onclick="captureAndPost()" title="Capture photo"></button>
+        </div>
     </div>
 
-    <!-- Posts Feed -->
+    <!-- ==========================================================
+       3. EXPLORE POSTS FEED SCREEN
+       ========================================================== -->
     <div id="posts-screen" class="screen">
         <div class="glass-header">
-            <h2>Explore</h2>
+            <h2>Explore Feed</h2>
+            <button class="edit-btn" onclick="loadPosts()" title="Refresh">🔄</button>
         </div>
         <div class="scroll-area" id="posts-feed"></div>
     </div>
 
-    <!-- Find Friends -->
+    <!-- ==========================================================
+       4. FIND FRIENDS SCREEN
+       ========================================================== -->
     <div id="friends-screen" class="screen">
         <div class="glass-header"><h2>Find Friends</h2></div>
-        <div style="padding: 0 20px 10px; display:flex; gap:10px;">
-            <input type="text" id="friend-search" class="input-box" placeholder="Search users...">
+        <div style="padding: 0 20px 12px; display:flex; gap:10px;">
+            <input type="text" id="friend-search" class="input-box" placeholder="Search username..." onkeypress="if(event.key==='Enter') searchUsers()">
             <button class="btn-glass" onclick="searchUsers()">🔍</button>
         </div>
         <div class="scroll-area" id="friends-list"></div>
     </div>
 
-    <!-- Chats (Friends Only) -->
+    <!-- ==========================================================
+       5. CHATS LIST SCREEN
+       ========================================================== -->
     <div id="chats-screen" class="screen">
         <div class="glass-header"><h2>Messages</h2></div>
         <div class="scroll-area" id="chats-list"></div>
     </div>
 
-    <!-- Interactive Profile Tab -->
+    <!-- ==========================================================
+       6. INTERACTIVE PROFILE SCREEN (Editable with ✏️ and 💾)
+       ========================================================== -->
     <div id="profile-screen" class="screen">
-        <div class="glass-header"><h2>Profile</h2></div>
+        <div class="glass-header"><h2>My Profile</h2></div>
         <div class="scroll-area">
             <div class="glass-panel profile-card">
                 
-                <!-- Avatar Upload -->
+                <!-- Avatar Upload Input & Trigger -->
                 <input type="file" id="avatar-upload" style="display:none;" accept="image/*" onchange="uploadAvatar(event)">
-                <div class="profile-avatar-wrapper" onclick="document.getElementById('avatar-upload').click()">
-                    <img id="prof-avatar-img" src="https://via.placeholder.com/100" class="profile-avatar-large">
+                <div class="profile-avatar-wrapper" onclick="document.getElementById('avatar-upload').click()" title="Change Avatar">
+                    <img id="prof-avatar-img" src="https://via.placeholder.com/120" class="profile-avatar-large">
                     <div class="edit-badge">📷</div>
                 </div>
 
-                <!-- Dynamic Fields -->
+                <!-- Editable Username Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">Username</span>
                         <span id="display-username" class="value">Loading...</span>
-                        <input type="text" id="input-username" class="input-box" style="display:none; margin-top:5px; padding:10px;">
+                        <input type="text" id="input-username" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter username">
                     </div>
-                    <button id="btn-edit-username" class="edit-btn" onclick="toggleEdit('username')">✏️</button>
+                    <button id="btn-edit-username" class="edit-btn" onclick="toggleEdit('username')" title="Edit Username">✏️</button>
                 </div>
 
+                <!-- Editable First Name Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">First Name</span>
                         <span id="display-first_name" class="value">Loading...</span>
-                        <input type="text" id="input-first_name" class="input-box" style="display:none; margin-top:5px; padding:10px;">
+                        <input type="text" id="input-first_name" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter first name">
                     </div>
-                    <button id="btn-edit-first_name" class="edit-btn" onclick="toggleEdit('first_name')">✏️</button>
+                    <button id="btn-edit-first_name" class="edit-btn" onclick="toggleEdit('first_name')" title="Edit First Name">✏️</button>
                 </div>
 
+                <!-- Editable Last Name Field -->
                 <div class="profile-field">
                     <div style="display:flex; flex-direction:column; align-items:flex-start; flex:1;">
                         <span class="label">Last Name</span>
                         <span id="display-last_name" class="value">Loading...</span>
-                        <input type="text" id="input-last_name" class="input-box" style="display:none; margin-top:5px; padding:10px;">
+                        <input type="text" id="input-last_name" class="input-box" style="display:none; margin-top:8px; padding:10px;" placeholder="Enter last name">
                     </div>
-                    <button id="btn-edit-last_name" class="edit-btn" onclick="toggleEdit('last_name')">✏️</button>
+                    <button id="btn-edit-last_name" class="edit-btn" onclick="toggleEdit('last_name')" title="Edit Last Name">✏️</button>
                 </div>
                 
-                <button class="btn-glass" style="background: rgba(255,0,0,0.3); margin-top: 20px; width:100%;" onclick="logout()">Log Out</button>
+                <button class="btn-glass" style="background: rgba(255, 50, 50, 0.25); border-color: rgba(255,100,100,0.4); margin-top: 10px; width:100%;" onclick="logout()">Log Out</button>
             </div>
         </div>
     </div>
 
-    <!-- DM Chat Room -->
-    <div id="active-chat-screen" class="screen" style="background: rgba(255,255,255,0.05); backdrop-filter: var(--blur);">
-        <div class="glass-header glass-panel" style="border-radius:0 0 24px 24px; padding: 20px;">
-            <button class="edit-btn" onclick="closeChat()">← Back</button>
-            <h2 id="active-chat-title">Chat</h2>
-            <div style="width:50px;"></div>
+    <!-- ==========================================================
+       7. ACTIVE DM CHAT ROOM
+       ========================================================== -->
+    <div id="active-chat-screen" class="screen">
+        <div class="glass-header glass-panel" style="border-radius:0 0 28px 28px; padding: 20px; margin: 0 10px;">
+            <button class="edit-btn" onclick="closeChat()" title="Back">←</button>
+            <h2 id="active-chat-title" style="font-size: 1.2rem;">Chat Room</h2>
+            <div style="width:36px;"></div>
         </div>
         <div class="chat-messages" id="messages-container"></div>
-        <div style="padding: 15px 20px 30px; display:flex; gap:10px;">
+        <div style="padding: 15px 20px 25px; display:flex; gap:10px;">
             <input type="text" id="msg-input" class="input-box" placeholder="Type a message..." onkeypress="if(event.key === 'Enter') sendDM()">
             <button class="btn-glass" onclick="sendDM()">Send</button>
         </div>
     </div>
 
-    <!-- Bottom Nav -->
-    <div class="bottom-nav glass-panel" id="bottom-nav" style="display:none;">
-        <div class="nav-item" onclick="switchTab('posts')">📰</div>
-        <div class="nav-item" onclick="switchTab('friends')">🔍</div>
-        <div class="nav-item active" onclick="switchTab('camera')">📷</div>
-        <div class="nav-item" onclick="switchTab('chats')">💬</div>
-        <div class="nav-item" onclick="switchTab('profile')">👤</div>
+    <!-- ==========================================================
+       8. FLOATING BOTTOM NAVIGATION
+       ========================================================== -->
+    <div class="bottom-nav" id="bottom-nav" style="display:none;">
+        <div class="nav-item" onclick="switchTab('posts')" title="Explore">📰</div>
+        <div class="nav-item" onclick="switchTab('friends')" title="Find Friends">🔍</div>
+        <div class="nav-item active" onclick="switchTab('camera')" title="Camera">📷</div>
+        <div class="nav-item" onclick="switchTab('chats')" title="Messages">💬</div>
+        <div class="nav-item" onclick="switchTab('profile')" title="Profile">👤</div>
     </div>
 
 </div>
 
+<!-- ==========================================================
+   9. APPLICATION LOGIC & SUPABASE INTEGRATION
+   ========================================================== -->
 <script>
-    // YOUR SUPABASE KEYS
+    // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = 'https://egzkmrddetiggrcvrjoq.supabase.co';
     const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE'; 
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null; let cameraStream = null; let currentChatUserId = null; let messageSubscription = null;
-    let userProfile = {}; // Store local profile state
+    let currentUser = null; 
+    let cameraStream = null; 
+    let currentChatUserId = null; 
+    let messageSubscription = null;
+    let userProfile = {};
 
-    // --- 1. AUTH & INIT ---
+    // --- AUTHENTICATION STATE OBSERVER ---
     client.auth.onAuthStateChange(async (event, session) => {
         if (session) {
             currentUser = session.user;
@@ -229,39 +709,76 @@
             currentUser = null;
             document.getElementById('auth-screen').classList.add('active');
             document.getElementById('bottom-nav').style.display = 'none';
+            stopCamera();
         }
     });
 
-    async function signInWithGoogle() { await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); }
-    async function logout() { await client.auth.signOut(); window.location.reload(); }
+    async function handleAuth(type) {
+        const email = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-pass').value;
+        const errDiv = document.getElementById('auth-error');
+        errDiv.style.display = 'none';
 
-    // --- 2. DYNAMIC PROFILE EDITING ---
+        if (!email || password.length < 6) {
+            errDiv.innerText = "Please provide a valid email and a password (min 6 characters).";
+            errDiv.style.display = "block";
+            return;
+        }
+
+        if (type === 'signup') {
+            const { data, error } = await client.auth.signUp({ email, password });
+            if (error) {
+                errDiv.innerText = error.message;
+                errDiv.style.display = "block";
+            } else if (data.user) {
+                // Initialize profile row securely
+                await client.from('profiles').upsert([{ id: data.user.id, username: email.split('@')[0] }]);
+                alert("Account created successfully!");
+            }
+        } else {
+            const { error } = await client.auth.signInWithPassword({ email, password });
+            if (error) {
+                errDiv.innerText = error.message;
+                errDiv.style.display = "block";
+            }
+        }
+    }
+
+    async function logout() {
+        await client.auth.signOut();
+        window.location.reload();
+    }
+
+    // --- PROFILE MANAGEMENT & EDITING ---
     async function loadProfileData() {
-        const { data } = await client.from('profiles').select('*').eq('id', currentUser.id).single();
+        if (!currentUser) return;
+        const { data, error } = await client.from('profiles').select('*').eq('id', currentUser.id).single();
         if (data) {
             userProfile = data;
             document.getElementById('display-username').innerText = data.username || 'Not set';
             document.getElementById('display-first_name').innerText = data.first_name || 'Not set';
             document.getElementById('display-last_name').innerText = data.last_name || 'Not set';
-            if(data.avatar_url) document.getElementById('prof-avatar-img').src = data.avatar_url;
+            if (data.avatar_url) {
+                document.getElementById('prof-avatar-img').src = data.avatar_url;
+            }
+        } else if (error) {
+            // Self-heal missing profile row
+            await client.from('profiles').insert([{ id: currentUser.id }]);
         }
     }
 
-    // Toggle Pen/Save Icons and Input fields
     async function toggleEdit(field) {
         const display = document.getElementById(`display-${field}`);
         const input = document.getElementById(`input-${field}`);
         const btn = document.getElementById(`btn-edit-${field}`);
 
         if (input.style.display === 'none') {
-            // Switch to Edit Mode
             input.value = userProfile[field] || '';
             display.style.display = 'none';
             input.style.display = 'block';
             btn.innerText = '💾';
             input.focus();
         } else {
-            // Save Mode
             const newValue = input.value.trim();
             display.innerText = newValue || 'Not set';
             userProfile[field] = newValue;
@@ -270,36 +787,41 @@
             input.style.display = 'none';
             btn.innerText = '✏️';
 
-            // Push update to Supabase silently
-            await client.from('profiles').update({ [field]: newValue }).eq('id', currentUser.id);
+            // Push update to Supabase database
+            const { error } = await client.from('profiles').update({ [field]: newValue }).eq('id', currentUser.id);
+            if (error) alert("Failed to save changes: " + error.message);
         }
     }
 
     async function uploadAvatar(event) {
         const file = event.target.files[0];
-        if(!file) return;
+        if (!file) return;
 
-        // Visual loading state
-        document.getElementById('prof-avatar-img').style.opacity = '0.5';
+        const avatarImg = document.getElementById('prof-avatar-img');
+        avatarImg.style.opacity = '0.4';
 
         const fileExt = file.name.split('.').pop();
-        const fileName = `${currentUser.id}-${Math.random()}.${fileExt}`;
+        const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
 
-        // Upload to storage
         const { error: uploadError } = await client.storage.from('avatars').upload(fileName, file);
-        if(uploadError) { alert("Upload failed. Is your 'avatars' bucket public?"); return; }
+        if (uploadError) {
+            alert("Upload failed. Ensure your 'avatars' storage bucket is public. Error: " + uploadError.message);
+            avatarImg.style.opacity = '1';
+            return;
+        }
 
-        // Get URL and save to DB
         const { data: urlData } = client.storage.from('avatars').getPublicUrl(fileName);
-        await client.from('profiles').update({ avatar_url: urlData.publicUrl }).eq('id', currentUser.id);
-        
-        // Update UI
-        document.getElementById('prof-avatar-img').src = urlData.publicUrl;
-        document.getElementById('prof-avatar-img').style.opacity = '1';
-        userProfile.avatar_url = urlData.publicUrl;
+        const publicUrl = urlData.publicUrl;
+
+        const { error: updateError } = await client.from('profiles').update({ avatar_url: publicUrl }).eq('id', currentUser.id);
+        if (!updateError) {
+            avatarImg.src = publicUrl;
+            userProfile.avatar_url = publicUrl;
+        }
+        avatarImg.style.opacity = '1';
     }
 
-    // --- 3. NAVIGATION ---
+    // --- NAVIGATION CONTROLLER ---
     const tabs = ['camera', 'posts', 'friends', 'chats', 'profile'];
     function switchTab(tab) {
         tabs.forEach(t => document.getElementById(t + '-screen')?.classList.remove('active'));
@@ -314,139 +836,218 @@
         if (tab === 'chats') loadFriendsForChat();
     }
 
-    // --- 4. CAMERA & POSTS ---
-    async function startCamera() { if (navigator.mediaDevices) { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } }); document.getElementById('camera-feed').srcObject = cameraStream; } }
-    function stopCamera() { if (cameraStream) cameraStream.getTracks().forEach(t => t.stop()); }
+    // --- CAMERA & POSTS SYSTEM ---
+    async function startCamera() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+                document.getElementById('camera-feed').srcObject = cameraStream;
+            } catch (err) {
+                console.warn("Camera access denied or unavailable:", err);
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+    }
 
     async function captureAndPost() {
-        const btn = document.querySelector('.capture-btn');
-        btn.style.transform = "scale(1.5)"; setTimeout(() => btn.style.transform = "", 200);
-
         const video = document.getElementById('camera-feed');
         const canvas = document.getElementById('camera-canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        if (!video.videoWidth) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
         canvas.toBlob(async (blob) => {
-            const fileName = `${Date.now()}.png`;
-            const { error } = await client.storage.from('post-images').upload(fileName, blob);
-            if (!error) {
-                const { data } = client.storage.from('post-images').getPublicUrl(fileName);
-                await client.from('posts').insert([{ user_id: currentUser.id, image_url: data.publicUrl }]);
+            const fileName = `${currentUser.id}-${Date.now()}.png`;
+            const { error: uploadError } = await client.storage.from('post-images').upload(fileName, blob);
+            
+            if (!uploadError) {
+                const { data: urlData } = client.storage.from('post-images').getPublicUrl(fileName);
+                await client.from('posts').insert([{ user_id: currentUser.id, image_url: urlData.publicUrl }]);
                 switchTab('posts');
+            } else {
+                alert("Could not upload post image. Ensure 'post-images' bucket is public.");
             }
         }, 'image/png');
     }
 
     async function loadPosts() {
-        const feed = document.getElementById('posts-feed'); feed.innerHTML = '';
-        const { data } = await client.from('posts').select(`*, profiles(first_name, username, avatar_url)`).order('created_at', { ascending: false });
+        const feed = document.getElementById('posts-feed');
+        feed.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Loading posts...</div>';
         
-        if(data) data.forEach((post, i) => {
-            const div = document.createElement('div');
-            div.className = 'glass-panel post-card';
-            div.style.animationDelay = `${i * 0.1}s`; // Stagger animation
-            const avatarHtml = post.profiles?.avatar_url 
-                ? `<img src="${post.profiles.avatar_url}" class="avatar" style="width:35px; height:35px;">` 
-                : `<div class="avatar" style="width:35px; height:35px; font-size:0.8rem;">${post.profiles?.first_name?.[0] || '?'}</div>`;
-            
-            div.innerHTML = `
-                <img src="${post.image_url}" class="post-img">
-                <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
-                    ${avatarHtml}
-                    <span style="font-weight:600;">${post.profiles?.username || 'Unknown'}</span>
-                </div>
-            `;
-            feed.appendChild(div);
-        });
+        const { data, error } = await client.from('posts').select(`*, profiles(first_name, username, avatar_url)`).order('created_at', { ascending: false });
+        feed.innerHTML = '';
+        
+        if (data && data.length > 0) {
+            data.forEach((post, i) => {
+                const div = document.createElement('div');
+                div.className = 'glass-panel post-card';
+                div.style.animationDelay = `${i * 0.08}s`;
+                
+                const avatarHtml = post.profiles?.avatar_url 
+                    ? `<img src="${post.profiles.avatar_url}" class="avatar" style="width:38px; height:38px;">` 
+                    : `<div class="avatar" style="width:38px; height:38px; font-size:0.85rem;">${post.profiles?.first_name?.[0] || post.profiles?.username?.[0] || '?'}</div>`;
+                
+                div.innerHTML = `
+                    <img src="${post.image_url}" class="post-img">
+                    <div style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+                        ${avatarHtml}
+                        <div>
+                            <div style="font-weight:600; font-size:0.95rem;">@${post.profiles?.username || 'unknown'}</div>
+                            <div style="font-size:0.75rem; color:var(--text-muted);">${new Date(post.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                        </div>
+                    </div>
+                `;
+                feed.appendChild(div);
+            });
+        } else {
+            feed.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No posts yet. Capture one from the camera tab!</div>';
+        }
     }
 
-    // --- 5. FRIENDS ---
+    // --- FRIEND SEARCH & CONNECTIONS ---
     async function searchUsers() {
-        const query = document.getElementById('friend-search').value.toLowerCase();
+        const query = document.getElementById('friend-search').value.toLowerCase().trim();
+        const list = document.getElementById('friends-list');
+        list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Searching...</div>';
+
         const { data } = await client.from('profiles').select('*').neq('id', currentUser.id).ilike('username', `%${query}%`);
-        const list = document.getElementById('friends-list'); list.innerHTML = '';
-        
-        if(data) data.forEach((user, i) => {
-            const div = document.createElement('div');
-            div.className = 'list-item'; div.style.animationDelay = `${i * 0.1}s`;
-            const avatarHtml = user.avatar_url ? `<img src="${user.avatar_url}" class="avatar">` : `<div class="avatar">${user.first_name?.[0]||'?'}</div>`;
-            div.innerHTML = `
-                ${avatarHtml}
-                <div style="flex:1; margin-left:15px;">
-                    <div style="font-weight:600;">${user.first_name} ${user.last_name}</div>
-                    <div style="font-size:0.85rem; opacity:0.7;">@${user.username}</div>
-                </div>
-                <button class="btn-glass" onclick="addFriend('${user.id}')">Add</button>
-            `;
-            list.appendChild(div);
-        });
+        list.innerHTML = '';
+
+        if (data && data.length > 0) {
+            data.forEach((user, i) => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.animationDelay = `${i * 0.08}s`;
+                
+                const avatarHtml = user.avatar_url ? `<img src="${user.avatar_url}" class="avatar">` : `<div class="avatar">${user.first_name?.[0] || user.username?.[0] || '?'}</div>`;
+                
+                div.innerHTML = `
+                    ${avatarHtml}
+                    <div style="flex:1; margin-left:14px;">
+                        <div style="font-weight:600;">${user.first_name || ''} ${user.last_name || ''}</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">@${user.username || 'n/a'}</div>
+                    </div>
+                    <button class="btn-glass" style="padding: 10px 18px; font-size:0.9rem;" onclick="addFriend('${user.id}')">Add</button>
+                `;
+                list.appendChild(div);
+            });
+        } else {
+            list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No users found.</div>';
+        }
     }
 
     async function addFriend(friendId) {
-        await client.from('friendships').insert([{ user1_id: currentUser.id, user2_id: friendId }]);
-        alert("Friend added!");
+        const { error } = await client.from('friendships').insert([{ user1_id: currentUser.id, user2_id: friendId }]);
+        if (!error) {
+            alert("Friend added successfully!");
+        } else {
+            alert("Already friends or request pending.");
+        }
     }
 
-    // --- 6. CHATS & DMS ---
+    // --- REAL-TIME DIRECT MESSAGING ---
     async function loadFriendsForChat() {
-        const container = document.getElementById('chats-list'); container.innerHTML = '';
+        const container = document.getElementById('chats-list');
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Loading chats...</div>';
+
         const { data: friendships } = await client.from('friendships').select('*').or(`user1_id.eq.${currentUser.id},user2_id.eq.${currentUser.id}`);
-        if (!friendships) return;
+        container.innerHTML = '';
+
+        if (!friendships || friendships.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted);">No friends yet. Search and add friends to start chatting!</div>';
+            return;
+        }
+
         const friendIds = friendships.map(f => f.user1_id === currentUser.id ? f.user2_id : f.user1_id);
         const { data: friends } = await client.from('profiles').select('*').in('id', friendIds);
 
-        friends.forEach((friend, i) => {
-            const div = document.createElement('div');
-            div.className = 'list-item'; div.style.cursor = 'pointer'; div.style.animationDelay = `${i * 0.1}s`;
-            div.onclick = () => openChat(friend.id, friend.first_name);
-            const avatarHtml = friend.avatar_url ? `<img src="${friend.avatar_url}" class="avatar">` : `<div class="avatar">${friend.first_name?.[0]||'?'}</div>`;
-            
-            div.innerHTML = `
-                ${avatarHtml}
-                <div style="flex:1; margin-left:15px;">
-                    <div style="font-weight:600;">${friend.first_name}</div>
-                    <div style="font-size:0.85rem; opacity:0.7;">Tap to chat</div>
-                </div>
-            `;
-            container.appendChild(div);
-        });
+        if (friends && friends.length > 0) {
+            friends.forEach((friend, i) => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.style.cursor = 'pointer';
+                div.style.animationDelay = `${i * 0.08}s`;
+                div.onclick = () => openChat(friend.id, friend.first_name || friend.username || 'Chat');
+                
+                const avatarHtml = friend.avatar_url ? `<img src="${friend.avatar_url}" class="avatar">` : `<div class="avatar">${friend.first_name?.[0] || friend.username?.[0] || '?'}</div>`;
+                
+                div.innerHTML = `
+                    ${avatarHtml}
+                    <div style="flex:1; margin-left:14px;">
+                        <div style="font-weight:600;">${friend.first_name || friend.username || 'User'}</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted);">Tap to open conversation</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
     }
 
     async function openChat(userId, userName) {
         currentChatUserId = userId;
         document.getElementById('active-chat-title').innerText = userName;
         document.getElementById('active-chat-screen').classList.add('active');
-        await fetchMessages(); subscribeToMessages();
+        await fetchMessages();
+        subscribeToMessages();
     }
 
-    function closeChat() { document.getElementById('active-chat-screen').classList.remove('active'); currentChatUserId = null; if(messageSubscription) client.removeChannel(messageSubscription); }
+    function closeChat() {
+        document.getElementById('active-chat-screen').classList.remove('active');
+        currentChatUserId = null;
+        if (messageSubscription) {
+            client.removeChannel(messageSubscription);
+            messageSubscription = null;
+        }
+    }
 
     async function fetchMessages() {
         const container = document.getElementById('messages-container');
         const { data } = await client.from('direct_messages').select('*').or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${currentChatUserId}),and(sender_id.eq.${currentChatUserId},receiver_id.eq.${currentUser.id})`).order('created_at', { ascending: true });
+        
         container.innerHTML = '';
-        if (data) { data.forEach(msg => renderMessage(msg)); container.scrollTop = container.scrollHeight; }
+        if (data) {
+            data.forEach(msg => renderMessage(msg));
+            container.scrollTop = container.scrollHeight;
+        }
     }
 
     async function sendDM() {
-        const input = document.getElementById('msg-input'); const text = input.value.trim();
-        if (!text || !currentChatUserId) return; input.value = '';
+        const input = document.getElementById('msg-input');
+        const text = input.value.trim();
+        if (!text || !currentChatUserId) return;
+        
+        input.value = '';
         await client.from('direct_messages').insert([{ sender_id: currentUser.id, receiver_id: currentChatUserId, content: text }]);
     }
 
     function renderMessage(msg) {
-        const container = document.getElementById('messages-container'); const div = document.createElement('div');
+        const container = document.getElementById('messages-container');
+        const div = document.createElement('div');
         div.className = msg.sender_id === currentUser.id ? 'msg msg-sent' : 'msg msg-received';
-        div.innerText = msg.content; container.appendChild(div); container.scrollTop = container.scrollHeight;
+        div.innerText = msg.content;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
     }
 
     function subscribeToMessages() {
         if (messageSubscription) client.removeChannel(messageSubscription);
-        messageSubscription = client.channel('public:direct_messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, payload => {
-            const newMsg = payload.new;
-            if ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === currentChatUserId) || (newMsg.sender_id === currentChatUserId && newMsg.receiver_id === currentUser.id)) renderMessage(newMsg);
-        }).subscribe();
+        messageSubscription = client.channel('public:direct_messages')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, payload => {
+                const newMsg = payload.new;
+                if ((newMsg.sender_id === currentUser.id && newMsg.receiver_id === currentChatUserId) || 
+                    (newMsg.sender_id === currentChatUserId && newMsg.receiver_id === currentUser.id)) {
+                    renderMessage(newMsg);
+                }
+            })
+            .subscribe();
     }
 </script>
 
